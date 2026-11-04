@@ -2,62 +2,80 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <title>Montagem, upgrade e manutenção de PC gamer em São Paulo | LCPC</title>
+  <title>Montagem e upgrade de PC gamer em São Paulo | LCPC Gaming</title>
   <meta name="description" content="Monte um PC gamer, melhore o atual ou descubra a causa de travamentos e aquecimento. LCPC Gaming, na Vila Marari, em São Paulo. Orçamento pelo WhatsApp.">
   <!-- Ajustes desta página (lidos pelo build e removidos do HTML final). -->
   <meta name="lcpc:context" content="pcGamer">
   <meta name="lcpc:mobile-cta" content="Pedir orçamento de PC gamer">
   <meta name="lcpc:faq" content="pcGamer">
   <meta name="lcpc:breadcrumb" content="PC Gamer">
+  <meta name="lcpc:image" content="gabineteInterior">
+  <meta name="lcpc:og" content="Montagem, upgrade e manutenção de PC gamer em São Paulo">
+  <meta name="lcpc:service" content="Montagem, upgrade e manutenção de PC gamer">
+  <meta name="lcpc:service-type" content="Montagem, upgrade e manutenção de PC gamer desktop">
+  <meta name="lcpc:service-description" content="Montagem de PC gamer, upgrade de processador, placa de vídeo, memória e armazenamento, e diagnóstico de aquecimento, ruído, travamentos, desligamentos e falta de vídeo em desktops.">
 </head>
 <body>
 <main>
 
-  <section class="page-hero">
-    <div class="wrap page-hero__grid">
-      <div>
+  <section class="phero phero--gamer">
+    <div class="wrap phero__grid">
+      <div class="phero__text">
         <h1>Montagem, upgrade e manutenção de PC gamer em São Paulo</h1>
         <p class="lead">
           A LCPC Gaming, na Vila Marari, monta PCs gamer desktop, faz upgrades em máquinas compatíveis e diagnostica aquecimento, ruído, travamentos, desligamentos e falta de vídeo. A avaliação parte dos seus jogos, da resolução, do orçamento e das peças que você já tem.
         </p>
         <div class="actions">
           <lcpc-whatsapp context="pcGamer" location="hero" />
+          <a class="btn btn--ghost" href="#caminhos">Escolher um caminho</a>
         </div>
+        <ul class="hero__tags">
+          <li>Só desktop</li>
+          <li>Montagem</li>
+          <li>Upgrade</li>
+          <li>Diagnóstico</li>
+        </ul>
       </div>
-      <lcpc-photo name="gabineteInterior" sizes="(min-width: 900px) 38vw, 100vw" widths="480,668" class="photo--cut" priority />
+      <div class="phero__media">
+        <lcpc-tile name="gabineteInterior" sizes="(min-width: 900px) 46vw, 100vw" widths="480,668" class="tile--wide" pos="50% 40%" priority />
+        <lcpc-tile name="videoVerde" sizes="(min-width: 900px) 23vw, 50vw" widths="232,464" pos="50% 40%" />
+        <lcpc-tile name="videoRosa" sizes="(min-width: 900px) 23vw, 50vw" widths="232,464" pos="50% 50%" />
+      </div>
     </div>
+  </section>
+
+  <section class="band" aria-labelledby="resposta" id="caminhos">
     <div class="wrap">
-      <nav class="jump-paths" aria-label="Escolha seu caminho">
-        <a href="#montar">
-          <strong>Montar um PC</strong>
-          <span>Começar do zero ou com peças que você já tem</span>
-        </a>
-        <a href="#upgrade">
-          <strong>Melhorar o PC atual</strong>
-          <span>Avaliar quais upgrades fazem sentido na sua máquina</span>
-        </a>
-        <a href="#diagnostico">
-          <strong>Diagnosticar um problema</strong>
-          <span>Descobrir por que o PC esquenta, trava ou desliga</span>
-        </a>
+      <div class="answer">
+        <h2 id="resposta">Como montar, melhorar ou consertar um PC gamer?</h2>
+        <p>
+          Na LCPC Gaming você escolhe entre três caminhos para o seu desktop: montar um PC novo, melhorar o que você já tem ou diagnosticar um problema. A avaliação parte dos seus jogos, da resolução do monitor, do orçamento e das peças que você já tem, sempre conferindo a compatibilidade entre processador, placa-mãe, memória, placa de vídeo, fonte e gabinete. Não há promessa de ganho de FPS antes de avaliar a máquina: o resultado depende do jogo e da peça que limita o PC.
+        </p>
+      </div>
+      <nav class="jump" aria-label="Escolha seu caminho">
+        <a href="#montar"><strong>Montar um PC</strong><span>Começar do zero ou com peças que você já tem</span></a>
+        <a href="#upgrade"><strong>Melhorar o PC atual</strong><span>Avaliar quais upgrades fazem sentido na sua máquina</span></a>
+        <a href="#diagnostico"><strong>Diagnosticar um problema</strong><span>Descobrir por que o PC esquenta, trava ou desliga</span></a>
       </nav>
     </div>
   </section>
 
-  <section id="montar" class="section section--raised" aria-labelledby="montar-titulo">
+  <lcpc-trace variant="1" pulse />
+
+  <section id="montar" class="band band--raised" aria-labelledby="montar-titulo">
     <div class="wrap">
-      <div class="section-head">
+      <div class="head">
         <h2 id="montar-titulo">Montar um PC</h2>
         <p>Cinco informações orientam a escolha das peças. Quanto mais delas você enviar, mais útil é a primeira resposta.</p>
       </div>
-      <ul class="spec-rows spec-rows--compact">
+      <ul class="strip">
         <li>
           <h3>Jogos</h3>
-          <p>Um competitivo leve e um lançamento de mundo aberto pedem coisas diferentes. A lista do que você joga, e do que pretende jogar, é o ponto de partida.</p>
+          <p>Um competitivo leve e um lançamento de mundo aberto pedem coisas diferentes. A lista do que você joga é o ponto de partida.</p>
         </li>
         <li>
           <h3>Resolução</h3>
-          <p>Full HD, QHD e 4K mudam bastante a exigência sobre a placa de vídeo. A taxa de atualização do monitor também entra na conta.</p>
+          <p>Full HD, QHD e 4K mudam a exigência sobre a placa de vídeo. A taxa de atualização do monitor também entra na conta.</p>
         </li>
         <li>
           <h3>Orçamento</h3>
@@ -65,15 +83,15 @@
         </li>
         <li>
           <h3>Peças que você já tem</h3>
-          <p>Placa de vídeo, gabinete, SSD ou fonte podem ser aproveitados se estiverem em bom estado e forem compatíveis com o restante.</p>
+          <p>Placa de vídeo, gabinete, SSD ou fonte podem ser aproveitados se estiverem em bom estado e forem compatíveis.</p>
         </li>
         <li>
           <h3>Compatibilidade</h3>
-          <p>Soquete do processador, tipo de memória, potência e conectores da fonte, tamanho da placa de vídeo e altura do cooler em relação ao gabinete.</p>
+          <p>Soquete do processador, tipo de memória, potência da fonte, tamanho da placa de vídeo e altura do cooler.</p>
         </li>
       </ul>
-      <div class="columns-2 columns-2--top">
-        <div>
+      <div class="bento bento--after">
+        <div class="tile tile--text c5">
           <h3>O que a montagem pode incluir</h3>
           <ul class="ticks">
             <li>Seleção de peças conforme compatibilidade, orçamento e uso</li>
@@ -83,86 +101,82 @@
             <li>Testes de desempenho, temperatura e estabilidade sob carga</li>
           </ul>
         </div>
-        <div class="callout">
-          <p>Já comprou as peças ou está quase comprando? Envie a lista antes para conferir a compatibilidade.</p>
-          <lcpc-whatsapp context="montagem" location="jornada_montar">Pedir orçamento de montagem</lcpc-whatsapp>
+        <lcpc-tile name="videoGabinete" sizes="(min-width: 760px) 30vw, 100vw" class="c4" pos="50% 50%" />
+        <div class="tile tile--text tile--accent c3">
+          <h3>Já tem as peças?</h3>
+          <p>Envie a lista antes de comprar para conferir a compatibilidade.</p>
+          <p><lcpc-whatsapp context="montagem" location="jornada_montar" variant="dark">Pedir orçamento de montagem</lcpc-whatsapp></p>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="upgrade" class="section" aria-labelledby="upgrade-titulo">
+  <section id="upgrade" class="band" aria-labelledby="upgrade-titulo">
     <div class="wrap">
-      <div class="section-head">
+      <div class="head">
         <h2 id="upgrade-titulo">Melhorar o PC atual</h2>
         <p>
           Trocar uma peça só traz resultado quando ela é o que está limitando a máquina. Por isso não dá para prometer ganho de FPS antes de avaliar: o resultado depende do jogo, da resolução e do restante da configuração.
         </p>
       </div>
-      <div class="columns-2">
-        <div>
+      <div class="bento">
+        <lcpc-tile name="hero" sizes="(min-width: 760px) 30vw, 100vw" widths="480,800,1200" class="c4 r2" pos="45% 50%" />
+        <div class="tile tile--text tile--navy c8">
           <h3>O que pode ser avaliado</h3>
-          <ul class="ticks">
-            <li>Upgrade de processador, placa de vídeo e fonte em desktops compatíveis</li>
-            <li>Ampliação de memória RAM</li>
+          <ul class="ticks ticks--two">
+            <li>Upgrade de processador, <span id="upgrade-placa-de-video">placa de vídeo</span> e fonte em desktops compatíveis</li>
+            <li id="upgrade-memoria-ram">Ampliação de memória RAM</li>
             <li>Upgrade de HD para SSD SATA ou NVMe</li>
             <li>Instalação de armazenamento adicional</li>
             <li>Upgrade do sistema de refrigeração</li>
           </ul>
         </div>
-        <div class="callout">
+        <div class="tile tile--text c8">
           <h3>O que enviar</h3>
           <p>Modelo da placa-mãe, processador, placa de vídeo, memória, fonte e gabinete, além do que você quer melhorar. Se não souber algum item, informe o que tiver.</p>
-          <lcpc-whatsapp context="upgrade" location="jornada_upgrade">Pedir avaliação de upgrade</lcpc-whatsapp>
+          <p><lcpc-whatsapp context="upgrade" location="jornada_upgrade">Pedir avaliação de upgrade</lcpc-whatsapp></p>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="diagnostico" class="section section--raised" aria-labelledby="diagnostico-titulo">
+  <section id="diagnostico" class="band band--navy" aria-labelledby="diagnostico-titulo">
     <div class="wrap">
-      <div class="section-head">
+      <div class="head">
         <h2 id="diagnostico-titulo">Diagnosticar um problema</h2>
         <p>Cada sintoma aponta para um conjunto de peças. Os testes confirmam a causa antes do orçamento de reparo.</p>
       </div>
-      <table class="symptom-table">
-        <caption class="sr-only">Sintomas de PC gamer e o que costuma ser avaliado</caption>
-        <thead>
-          <tr><th scope="col">Sintoma</th><th scope="col">O que costuma ser avaliado</th></tr>
-        </thead>
-        <tbody>
-          <tr><th scope="row">Aquecimento</th><td>Poeira, pasta térmica, thermal pads, ventoinhas, water cooler e fluxo de ar do gabinete.</td></tr>
-          <tr><th scope="row">Ruído</th><td>Ventoinhas, cooler e poeira acumulada no sistema de refrigeração.</td></tr>
-          <tr><th scope="row">Travamentos</th><td>Memória, armazenamento, temperatura, drivers e estabilidade sob carga.</td></tr>
-          <tr><th scope="row">Desligamentos</th><td>Fonte e temperatura do processador e da placa de vídeo, com testes sob carga.</td></tr>
-          <tr><th scope="row">Falta de vídeo</th><td>Placa de vídeo, memória, placa-mãe e fonte, além da configuração de BIOS.</td></tr>
-        </tbody>
-      </table>
-      <div class="actions actions--spaced">
-        <lcpc-whatsapp context="manutencaoGamer" location="jornada_diagnostico">Pedir diagnóstico do meu PC gamer</lcpc-whatsapp>
+      <lcpc-symptoms set="gamer" location="jornada_diagnostico" />
+      <div class="actions">
         <a class="btn btn--ghost" href="/servicos/#limpeza">Ver limpeza e manutenção</a>
+        <a class="btn btn--ghost" href="/conserto-de-computador/">O problema é em um computador de uso geral</a>
       </div>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="video-titulo">
+  <section class="band" aria-labelledby="video-titulo">
     <div class="wrap video-section">
       <!-- Player com capa e legenda de src/data/media.ts. O vídeo só baixa depois do play. -->
       <lcpc-video />
       <div class="video-section__text">
         <h2 id="video-titulo">Veja um gabinete de perto</h2>
-        <p>O vídeo só carrega quando você clica em reproduzir. Depois de assistir, escolha o caminho que combina com o seu caso:</p>
+        <p>O vídeo só carrega quando você clica em reproduzir. Ele mostra o gabinete e a iluminação em movimento, com som. Depois de assistir, escolha o caminho que combina com o seu caso:</p>
+        <nav class="jump jump--stack" aria-label="Caminhos do PC gamer, depois do vídeo">
+          <a href="#montar"><strong>Montar um PC</strong><span>Jogos, resolução, orçamento e peças que você já tem</span></a>
+          <a href="#upgrade"><strong>Melhorar o PC atual</strong><span>Processador, placa de vídeo, memória, SSD, fonte ou refrigeração</span></a>
+          <a href="#diagnostico"><strong>Diagnosticar um problema</strong><span>Aquecimento, ruído, travamentos, desligamentos ou falta de vídeo</span></a>
+        </nav>
         <div class="actions actions--stack">
           <lcpc-whatsapp context="montagem" location="video">Quero montar um PC</lcpc-whatsapp>
           <lcpc-whatsapp context="upgrade" location="video" variant="text">Quero fazer um upgrade</lcpc-whatsapp>
           <lcpc-whatsapp context="manutencaoGamer" location="video" variant="text">Meu PC está com problema</lcpc-whatsapp>
         </div>
-        <p class="hint">O problema é em um computador de uso geral? Veja <a class="text-link" href="/conserto-de-computador/">conserto de computador</a>.</p>
       </div>
+      <lcpc-tile name="videoRosa" sizes="(min-width: 900px) 28vw, 100vw" widths="232,464" class="video-section__photo" pos="50% 50%" />
     </div>
   </section>
 
-  <lcpc-faq set="pcGamer" title="Dúvidas sobre PC gamer" />
+  <lcpc-faq set="pcGamer" title="Dúvidas sobre PC gamer" lead="Peças próprias, upgrade, FPS e desligamentos durante o jogo." photo="gabineteInterior" photo-pos="30% 60%" />
 
   <lcpc-cta-band
     title="Conte o que você joga e o que quer resolver"

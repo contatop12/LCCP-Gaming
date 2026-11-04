@@ -19,8 +19,8 @@ Feito em HTML, CSS e TypeScript, sem framework, e publicado no Cloudflare Worker
 - **As páginas são arquivos HTML de verdade** em `src/pages/` (`index.html`, `pc-gamer/index.html`, `404.html` etc.). O texto e a estrutura de cada página estão ali, dentro de `<main>`, e podem ser lidos e editados à mão.
 - **Dados centrais ficam em TypeScript** (`src/data/`): empresa, catálogo, mensagens de WhatsApp, FAQ, mídia e menu. Nada disso é copiado para as páginas: elas pedem os dados por tags (veja abaixo), então a mudança vale no site inteiro.
 - **O cabeçalho, o rodapé, a barra do celular, as migalhas, as metatags, o JSON-LD e o analytics não estão nas páginas.** O build (`scripts/build.ts`) acrescenta tudo isso a cada página.
-- **O CSS** está em `src/styles/global.css` e é embutido em cada HTML. As fontes (Saira Condensed e IBM Plex Sans, licença OFL) ficam em `src/assets/fonts/` e são declaradas em `src/styles/fonts.css`.
-- **O JavaScript do navegador** está em `src/client/` (evento `whatsapp_click`, barra do celular, menu, vídeo), compilado e embutido no fim de cada página.
+- **O CSS** está em `src/styles/global.css` (base, faixas, bento, botões) e em `src/styles/parts/*.css` (raio-x, sintomas, faixa de serviços, mapa), embutido em cada HTML. Cada parte só entra nas páginas que usam o componente. As fontes (Saira Condensed e IBM Plex Sans, licença OFL) ficam em `src/assets/fonts/` e são declaradas em `src/styles/fonts.css`.
+- **O JavaScript do navegador** está em `src/client/` (evento `whatsapp_click`, barra do celular, menu e, só nas páginas que usam, vídeo, seletor de sintomas e mapa sob demanda), compilado e embutido no fim de cada página. Sem JavaScript todo o conteúdo continua legível.
 - **O Worker** (`src/worker/index.ts`) serve o site na Cloudflare e acrescenta cabeçalhos de segurança, cache, `noindex` fora do domínio de produção e suporte a `Range` para o vídeo.
 
 ### Tags `<lcpc-*>` nas páginas
@@ -29,16 +29,21 @@ São "marcadores" que o build troca pelo HTML final. Nenhuma tag `<lcpc-*>` cheg
 
 | Tag | O que gera |
 | ----- | ----- |
-| `<lcpc-whatsapp context="notebook" location="hero" variant="primary">Texto do botão</lcpc-whatsapp>` | Botão ou link de WhatsApp com a mensagem do contexto (`src/data/whatsapp.ts`) e os atributos do evento. `variant`: `primary` (padrão), `dark` ou `text`. Sem texto, usa "Pedir orçamento no WhatsApp" |
-| `<lcpc-photo name="consertoNotebook" sizes="..." widths="480,668" class="photo--cut" priority />` | `<figure>` com a foto de `src/data/media.ts` (nome da chave), `<picture>` em AVIF, WebP e JPEG e legenda. `priority` só para a imagem principal da página |
+| `<lcpc-whatsapp context="notebook" location="hero" variant="primary">Texto do botão</lcpc-whatsapp>` | Botão ou link de WhatsApp com a mensagem do contexto (`src/data/whatsapp.ts`) e os atributos do evento. `variant`: `primary` (padrão), `dark`, `ghost` ou `text`. Sem texto, usa "Pedir orçamento no WhatsApp" |
+| `<lcpc-photo name="consertoNotebook" sizes="..." widths="480,668" class="photo--cut" priority />` | `<figure>` com a foto de `src/data/media.ts` (nome da chave), `<picture>` em AVIF, WebP e JPEG e legenda. `priority` só para a imagem principal da página. Toda foto sob demanda leva uma miniatura borrada embutida (data URI, gerada no build) que aparece até a imagem decodificar |
+| `<lcpc-tile name="bancada" sizes="..." class="c5 r2" pos="50% 40%">...</lcpc-tile>` | Bloco de bento: a foto real preenche o bloco. Com conteúdo dentro da tag, ele vira o texto sobre a foto (com tarja escura para leitura); sem conteúdo, mostra a legenda. `c3` a `c9` definem a largura em 12 colunas, `r2` e `r3` a altura, `pos` o enquadramento |
 | `<lcpc-picture name="hero" art-name="heroMobile" ... preload />` | `<picture>` sem `<figure>`, com recorte para celular e `<link rel="preload">` no `<head>` (abertura da home) |
 | `<lcpc-catalog category="diagnostico" class="ticks" exclude="texto" />` | Lista `<ul>` dos itens publicados da categoria (`src/data/catalog.ts`). `exclude` tira os itens que contêm o texto |
-| `<lcpc-faq set="notebook" title="..." />` | Perguntas e respostas de `src/data/faq.ts` |
-| `<lcpc-location context="contato" location="contato" label="..." />` | Endereço, contatos e botões de WhatsApp e "Como chegar" |
+| `<lcpc-faq set="notebook" title="..." lead="..." photo="bancada" />` | Perguntas e respostas de `src/data/faq.ts`, com título, chamada e uma foto na coluna da esquerda |
+| `<lcpc-location context="contato" location="contato" title="..." intro="..." />` | Seção de localização: mapa sob demanda, endereço, contatos e botões de WhatsApp e "Como chegar" |
 | `<lcpc-cta-band title="..." text="..." context="notebook" label="..." />` | Faixa final de chamada para o WhatsApp |
+| `<lcpc-xray />` | "Raio-x do gabinete": pontos sobre a foto real, ligados por trilhas a 45 graus a links para os serviços. Os pontos e links ficam em `src/data/xray.ts` (coordenadas da foto original de 1200x1600) |
+| `<lcpc-symptoms set="geral" location="seletor_sintomas" />` | Seletor "O que está acontecendo com seu equipamento?". Conjuntos `geral`, `computador` e `gamer` em `src/data/symptoms.ts`. Sem JavaScript as respostas saem em sequência; com JavaScript viram abas (setas, Home e End) |
+| `<lcpc-ticker />` | Faixa de serviços em movimento (nomes das categorias publicadas). Com movimento reduzido fica estática, e a cópia usada na rolagem infinita é oculta para leitores de tela |
+| `<lcpc-trace variant="1" pulse />` | Trilha de circuito entre seções (SVG em linha). `pulse` acrescenta um sinal que acompanha a rolagem, onde o navegador suporta `animation-timeline` |
 | `<lcpc-video />` | Player de vídeo sob demanda (`video` em `src/data/media.ts`) |
 | `<lcpc-business field="owner.name" />` | Dado de `src/data/business.ts` dentro de um texto: `name`, `slogan`, `owner.name`, `owner.role`, `phone.display`, `email` |
-| `<lcpc-services priority="foco" />`, `<lcpc-digital-block />`, `<lcpc-category-links />`, `<lcpc-category-link />`, `<lcpc-category-summaries />` | Blocos do catálogo em `/servicos/` e na home, gerados da lista de categorias |
+| `<lcpc-service category="limpeza" class="c4" />`, `<lcpc-digital-block />`, `<lcpc-category-links />`, `<lcpc-category-link />` | Blocos do catálogo em `/servicos/`, gerados da lista de categorias: título, resumo e todos os itens publicados à vista, com a âncora da categoria |
 
 ### Ajustes de página
 
@@ -52,6 +57,10 @@ Ficam em `<meta name="lcpc:...">` no `<head>` de cada arquivo de `src/pages/` e 
 | `lcpc:breadcrumb` | Nome da página nas migalhas (e no JSON-LD). O "Início" é automático |
 | `lcpc:schema` | JSON-LD extra: `offer-catalog` ou `person` |
 | `lcpc:noindex` | `true` mantém a página fora do índice mesmo em produção (usado no 404) |
+| `lcpc:image` | Chave de `src/data/media.ts` da foto principal da página: vira `primaryImageOfPage` e a foto da imagem social |
+| `lcpc:og` | Título impresso na imagem social da página (`dist/og/<página>.jpg`, 1200x630, gerada no build com foto real, logo e título) |
+| `lcpc:type` | Tipo schema.org da página: `WebPage` (padrão), `AboutPage`, `ContactPage` ou `CollectionPage` |
+| `lcpc:service`, `lcpc:service-type`, `lcpc:service-description` | Geram o schema `Service` das páginas comerciais (prestador: a empresa; área: a cidade de São Paulo) |
 
 `<title>` e `<meta name="description">` também são lidos da página.
 
@@ -68,7 +77,8 @@ npm run check      # tsc --noEmit (site e Worker)
 npm run verify     # verificações do dist/ (use "node scripts/verify-site.mjs --production" para o build de produção)
 npm test           # check + build + verify
 npm run test:e2e   # testes no Chrome. Requer o preview rodando: npm run preview
-npm run media      # regenera as mídias a partir dos originais (o vídeo exige ffmpeg)
+npm run media      # regenera as mídias a partir dos originais (o vídeo e os quadros do vídeo exigem ffmpeg)
+node scripts/prepare-media.mjs --sem-video   # só recortes, ícones e quadros; não reencoda o vídeo
 npm run types      # regenera worker-configuration.d.ts depois de mudar o wrangler.jsonc
 npm run deploy     # wrangler deploy (publica na Cloudflare; veja "Publicação na Cloudflare")
 ```
@@ -87,7 +97,9 @@ O `wrangler.jsonc` roda `npm run build` antes de cada `wrangler dev` e `wrangler
 | Imagens, textos alternativos, legendas e vídeo | `src/data/media.ts` |
 | Menu e configuração por ambiente | `src/data/site.ts` |
 | Cabeçalho, rodapé, `<head>` e JSON-LD | `scripts/lib/layout.ts` |
-| Cores, tipografia e layout | `src/styles/global.css` |
+| Seletor de sintomas (opções, o que é avaliado, o que enviar, links) | `src/data/symptoms.ts` |
+| Raio-x do gabinete (componentes, serviços e links) | `src/data/xray.ts` |
+| Cores, tipografia e layout | `src/styles/global.css` e `src/styles/parts/*.css` |
 | Cabeçalhos HTTP, cache e Range | `src/worker/index.ts` |
 | Nome do Worker, host de produção, domínio | `wrangler.jsonc` |
 
@@ -95,7 +107,7 @@ Para expandir a presença gamer depois, crie páginas abaixo de `/pc-gamer/`, co
 
 ## Materiais
 
-Os originais ficam em `materiais/lcpc-gaming/` e não são publicados. O script `scripts/prepare-media.mjs` gera os recortes em `src/assets/media/` e o vídeo em `public/media/`. No build, o `sharp` converte as imagens para AVIF, WebP e JPEG (qualidade 62, 74 e 78; PNG 90), com o hash do conteúdo no nome, em `dist/assets/img/`. As variantes ficam em cache em `node_modules/.cache/lcpc-images`.
+Os originais ficam em `materiais/lcpc-gaming/` e não são publicados. O script `scripts/prepare-media.mjs` gera os recortes em `src/assets/media/`, os ícones (48, 180, 192 e 512 px) e o vídeo em `public/media/`. Os arquivos têm nomes descritivos em português (ex.: `conserto-de-notebook-bancada-vila-marari.jpg`) porque o nome vai para a URL pública da imagem; o build verifica isso. No build, o `sharp` converte as imagens para AVIF, WebP e JPEG (qualidade 62, 74 e 78; PNG 90), com o hash do conteúdo no nome, em `dist/assets/img/`. As variantes ficam em cache em `node_modules/.cache/lcpc-images`.
 
 Os nomes no Drive não batem com os do brief, então os arquivos foram renomeados. Onde a pasta tinha várias fotos, a escolha foi nossa e pode ser trocada:
 
@@ -108,9 +120,20 @@ Os nomes no Drive não batem com os do brief, então os arquivos foram renomeado
 | `bancada-lcpc.jpeg` | pasta Fotos da bancada, `conserto-de-computador-marari.jpeg` (escolhida) | "Na bancada" e Sobre |
 | `video-pc-gamer.mp4` | `lcpc-assistencia-pc-gamer.mp4` | PC Gamer, com capa no segundo 22,5 |
 | `logos/` | pasta Logos | `logo-sem-fundo.png` no site, `logo-tech.png` na imagem social |
-| `extras/` | demais fotos das pastas | Duas usadas em Sobre, o resto fica de reserva |
+| `extras/` | demais fotos das pastas | Cinco fotos usadas (placa-mãe com chave de precisão, bancada com luz de anel e logo, notebook aberto com mão em sinal de positivo, notebook Acer aberto, notebook com chaves de precisão) |
+| quadros do `video-pc-gamer.mp4` | segundos 10, 17 e 22,5 | Três quadros usados como fotos em `/pc-gamer/`, na home e em `/conserto-de-computador/` (o vídeo tem 464x832, então só entram em tamanho pequeno) |
 | `extras/nao-publicar-macbook/` | pasta Fotos da bancada | **Não usar enquanto Apple estiver fora do escopo:** o MacBook aparece nas fotos |
 | `catalogo-extraido.json` | extraído do PDF, com a cor de cada item | Base da comparação feita por `npm run verify` |
+
+## Direção visual e SEO desta versão
+
+- **Visual:** grafite de base, laranja do "GAMING" da logo como cor de ação e o azul elétrico do "C" da logo como cor de dados (trilhas, seletor, marcadores). Saira Condensed e IBM Plex Sans. As seções se encaixam em diagonal (corte da logo), há trilhas de circuito a 45 graus entre elas e os blocos de fotos reais têm tamanhos diferentes (bento). Movimento: uma faixa de luz cruza a foto da abertura uma vez, a faixa de serviços roda (para ao passar o mouse e tem versão estática) e os pontos do raio-x pulsam três vezes. Só `transform` e `opacity` são animados (o build verifica).
+- **Medidas de espaço:** as seções têm no máximo 64 px de espaço acima e 44 px abaixo no desktop (40 e 32 px no celular), nenhum vão acima de 96 px entre blocos visuais e o conteúdo usa até 1472 px de largura em telas de 1920 px.
+- **Conteúdo:** cada página comercial e `/servicos/` tem mais de 400 palavras, um bloco de resposta direta (50 a 100 palavras) perto do topo, FAQ com pelo menos 3 perguntas (também em `/servicos/` e `/contato/`) e links internos entre sintomas, serviços e páginas.
+- **Metadados:** títulos de 50 a 60 caracteres e descrições de 140 a 160 (o `verify` avisa se sair disso). Cada página tem imagem social própria, gerada em `scripts/lib/og.ts` com o texto convertido em vetor (as fontes TTF de `src/assets/fonts/og/` vêm das mesmas fontes do site; dependência `opentype.js`, só no build).
+- **Dados estruturados:** `LocalBusiness` (com `hasMap` e `contactPoint` do WhatsApp), `WebSite`, `WebPage` (ou `AboutPage`, `ContactPage`, `CollectionPage`) com `primaryImageOfPage`, `BreadcrumbList`, `FAQPage`, `Service` nas páginas comerciais (área: cidade de São Paulo), `VideoObject` em `/pc-gamer/`, `ImageObject` das fotos reais, `Person` com imagem em `/sobre/` e `OfferCatalog` em `/servicos/`. Continua sem horário, nota, avaliações, faixa de preço e coordenadas. Os blocos foram conferidos contra o vocabulário oficial do schema.org (tipos, propriedades e domínios).
+- **Rastreamento:** `robots.txt` cita os rastreadores de busca e de IA pelo nome (Googlebot, Bingbot, GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, PerplexityBot, Google-Extended e outros), sem bloquear nada, porque a trava em preview é o `noindex`. `sitemap.xml` lista as fotos de cada página. `llms.txt` traz um resumo factual de cada serviço publicado. `site.webmanifest` e os ícones 192 e 512 ficam em `public/`.
+- **Localização:** a Vila Marari (CEP 04402) fica na Zona Sul de São Paulo. O texto usa isso como localização, nunca como promessa de área de atendimento.
 
 ## Catálogo
 
@@ -148,7 +171,7 @@ Cada clique em um CTA de WhatsApp envia o evento `whatsapp_click`:
 | Parâmetro | Exemplo | Conteúdo |
 | ----- | ----- | ----- |
 | `page_path` | `/pc-gamer/` | Caminho da página, sem parâmetros de URL |
-| `service_category` | `pc_gamer_upgrade` | Contexto do botão |
+| `service_category` | `pc_gamer_upgrade`, `sintoma_nao_liga` | Contexto do botão. Os botões do seletor de sintomas usam `sintoma_*` |
 | `cta_location` | `hero`, `barra_celular`, `faixa_final` | Posição do botão |
 
 O clique não espera o analytics para abrir o WhatsApp, e o evento não leva dados pessoais nem o texto da mensagem. No GTM, crie um acionador de evento personalizado `whatsapp_click` e passe os três parâmetros por variáveis da camada de dados. No GA4 direto, registre os parâmetros como dimensões personalizadas.
@@ -219,6 +242,18 @@ O site não inventa nada disso. Cada item está tratado com "consulte pelo Whats
 - [ ] CNPJ ou razão social, se quiserem no rodapé.
 - [ ] Política de privacidade e aviso de cookies. **Resolver antes de ativar GTM ou GA4,** por causa da LGPD.
 
+### Textos e fatos novos para validar
+
+- [ ] **Zona Sul:** "Vila Marari, bairro da Zona Sul de São Paulo" (CEP 04402) aparece na home, em `/contato/`, no `llms.txt` e no FAQ. É um fato geográfico, não uma promessa de cobertura. Confirmar que o cliente concorda com a frase.
+- [ ] **Mensagens de WhatsApp do seletor de sintomas** (`src/data/whatsapp.ts`: não liga, sem vídeo, esquentando, travando, reiniciando, tela quebrada, não carrega). Os textos são novos e seguem o estilo das mensagens do brief. Em `/pc-gamer/` o seletor usa a mensagem de manutenção gamer do brief.
+- [ ] **Raio-x do gabinete** (`src/data/xray.ts`): o vínculo de cada componente com um serviço do catálogo (ventoinhas, bomba do water cooler, memória RAM, placa de vídeo, entrada de ar, montagem) e os nomes dos componentes foram definidos olhando a foto. Conferir.
+- [ ] **FAQ novos** de `/servicos/` e `/contato/` (`src/data/faq.ts`) e os blocos de resposta direta de cada página.
+- [ ] **Quadros do vídeo como fotos:** três quadros do vídeo viraram fotos em `/pc-gamer/`, na home e em `/conserto-de-computador/`. Valem as mesmas dúvidas de uso do vídeo, e a resolução é baixa (464x832).
+- [ ] **Foto com mão em sinal de positivo** (`extras/assistencia-computador-gamer-zona-sul.jpeg`): a legenda não diz de quem é a mão.
+- [ ] **Imagens sociais e ícones** usam o PNG da logo (não há vetor) e o monograma LCPC. Vale pedir o SVG.
+- [ ] **Mapa do Google:** a página só carrega o iframe depois do clique (nenhuma requisição ao Google antes). Se o site passar a ter política de privacidade, mencionar o mapa.
+- [ ] **Faixa de serviços em movimento:** roda 4 vezes, para ao passar o mouse e fica estática com movimento reduzido. Confirmar se o cliente quer manter.
+
 ### Dúvidas do catálogo
 
 | Item | Conflito no PDF | Decisão atual |
@@ -244,7 +279,7 @@ Confirme também como responder quem pedir um equipamento excluído, como notebo
 
 ## Testes
 
-- `npm test`: tipos (site e Worker), build e verificações do HTML gerado. Cobre catálogo contra PDF, termos proibidos, WhatsApp, links, âncoras, metadados, JSON-LD, nome, endereço e telefone, modo de indexação e a ausência de tags `<lcpc-*>` e de caminhos antigos (`/_astro/`) no `dist/`.
-- `npm run test:e2e`: rolagem horizontal em 13 larguras, alvos de toque, menu, teclado e foco, vídeo sob demanda, todos os CTAs de WhatsApp, evento, barra do celular, navegação sem JavaScript, movimento reduzido, CLS e LCP, 404 e requisições `Range` (206/416) do vídeo. Roda contra o `npm run preview` (wrangler dev), que exercita o Worker de verdade.
+- `npm test`: tipos (site e Worker), build e verificações do HTML gerado. Cobre catálogo contra PDF, termos proibidos (inclusive em `llms.txt`), WhatsApp, links, âncoras, metadados (títulos de 50 a 60 e descrições de 140 a 160 caracteres), JSON-LD (WebSite, WebPage, Service, VideoObject, ImageObject, Person, `hasMap`, `contactPoint`, sem coordenadas), imagem social de cada página (1200x630, abaixo de 300 KB, uma por página), mínimo de 400 palavras, resposta direta de 50 a 100 palavras, FAQ, respostas do seletor de sintomas no HTML, ausência de iframe e de requisições a terceiros antes do clique no mapa, `sizes` nas imagens, nomes de imagem descritivos, regra de Apple (nenhuma foto de `nao-publicar-macbook` ou `cidade-ademar`/`zona-sul-sp`), `robots.txt`, `llms.txt`, manifesto, sitemap com imagens, animações só de `transform` e `opacity`, nome, endereço e telefone, modo de indexação e a ausência de tags `<lcpc-*>` e de caminhos antigos (`/_astro/`) no `dist/`.
+- `npm run test:e2e`: rolagem horizontal em 13 larguras, alvos de toque (48 px nos CTAs), menu, teclado e foco, vídeo sob demanda, todos os CTAs de WhatsApp, evento, barra do celular, navegação sem JavaScript, movimento reduzido (nenhuma animação rodando), CLS e LCP, 404 e requisições `Range` (206/416) do vídeo. Também cobre o raio-x (posição dos pontos e trilhas em 5 larguras, rótulos sem sobreposição, foco de teclado), o seletor de sintomas (mouse, teclado, papéis ARIA, âncora vinda de outra página, sem JavaScript e a mensagem de WhatsApp de cada opção), o mapa (nenhuma requisição ao Google antes do clique) e as miniaturas das fotos. Roda contra o `npm run preview` (wrangler dev), que exercita o Worker de verdade.
 
-Ao rodar o Lighthouse nesta máquina, bloqueie o host `kaspersky-labs.com` (`--blocked-url-patterns=*kaspersky-labs.com*`). O antivírus injeta um script de 207 KB em todas as páginas e distorce a pontuação de performance. Esse script não faz parte do site. Para medir o SEO localmente, suba o preview com um build de produção e `--var PRODUCTION_HOST:127.0.0.1`; sem isso o Worker envia `X-Robots-Tag: noindex` e o Lighthouse reprova a indexação.
+Última medição (Lighthouse 13, celular, build de produção de teste, sem o script do antivírus): home com desempenho 95, acessibilidade 100 e SEO 100; `/pc-gamer/` com 99, 100 e 100; CLS 0 nas duas. A nota de práticas recomendadas fica em 81 só porque o teste local roda em HTTP. Ao rodar o Lighthouse nesta máquina, bloqueie o host `kaspersky-labs.com` (`--blocked-url-patterns=*kaspersky-labs.com*`). O antivírus injeta um script de 207 KB em todas as páginas e distorce a pontuação de performance. Esse script não faz parte do site. Para medir o SEO localmente, suba o preview com um build de produção e `--var PRODUCTION_HOST:127.0.0.1`; sem isso o Worker envia `X-Robots-Tag: noindex` e o Lighthouse reprova a indexação.

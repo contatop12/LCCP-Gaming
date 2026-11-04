@@ -1,0 +1,157 @@
+/* Seletor de sintomas: uma tela de diagnóstico. Sem JavaScript, as respostas aparecem em sequência. */
+.sx {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sx__choices ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sx__choices li {
+  flex: 1 1 auto;
+}
+
+.sx__choices a,
+.sx__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0 1.1rem;
+  border: 0;
+  border-left: 4px solid var(--blue);
+  background: var(--graphite-3);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sx__choices a:hover,
+.sx__tab:hover {
+  background: #3d434b;
+  color: #fff;
+}
+
+.sx__tab[aria-selected='true'] {
+  border-left-color: var(--ink);
+  background: var(--accent);
+  color: var(--ink);
+}
+
+.sx__screen {
+  position: relative;
+  background: var(--navy-2);
+  background-image: var(--circuit);
+  border: 1px solid rgba(47, 162, 255, 0.45);
+  clip-path: polygon(0 0, calc(100% - 1.5rem) 0, 100% 1.5rem, 100% 100%, 0 100%);
+}
+
+.sx__panel {
+  padding: 1.25rem 1.4rem 1.4rem;
+  scroll-margin-top: 6rem;
+}
+
+.sx__panel + .sx__panel {
+  border-top: 1px solid rgba(47, 162, 255, 0.35);
+}
+
+.sx__panel h3 {
+  font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
+  font-weight: 700;
+}
+
+.sx__panel[hidden] {
+  display: none;
+}
+
+.sx__cols {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.9rem;
+}
+
+.sx__cols h4 {
+  color: var(--blue);
+}
+
+.sx__cols .ticks {
+  margin-top: 0.35rem;
+}
+
+.sx__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 1.5rem;
+  margin-top: 0.75rem;
+}
+
+.sx__links .text-link {
+  margin: 0;
+}
+
+.sx__cta {
+  margin-top: 0.5rem;
+}
+
+.sx__cta .btn {
+  width: 100%;
+}
+
+@media (min-width: 560px) {
+  .sx__cta .btn {
+    width: auto;
+  }
+}
+
+@media (min-width: 700px) {
+  .sx__cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 960px) {
+  .sx {
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .sx__choices ul {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .sx__tab::after,
+  .sx__choices a::after {
+    content: '';
+    width: 0.4rem;
+    height: 0.9rem;
+    background: currentColor;
+    opacity: 0.45;
+    transform: skewX(-22deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sx[data-enhanced] .sx__panel:not([hidden]) {
+    animation: sx-in 0.22s ease-out;
+  }
+}
+
+@keyframes sx-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}

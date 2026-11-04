@@ -1,0 +1,225 @@
+/* Raio-x do gabinete: pontos sobre a foto real, ligados por trilhas a 45 graus aos serviços do catálogo. */
+.xray__stage {
+  position: relative;
+  container-type: inline-size;
+}
+
+.xray__photo {
+  position: relative;
+  aspect-ratio: 960 / 1020;
+  overflow: hidden;
+  background: var(--navy-2);
+}
+
+/* A foto inteira é 1440x1640; o recorte mostra a janela de vidro e a lateral. */
+.xray__img {
+  position: absolute;
+  left: -17.708%;
+  top: -27.451%;
+  width: 150%;
+  max-width: none;
+  height: auto;
+}
+
+.xray__dot {
+  position: absolute;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: -0.875rem 0 0 -0.875rem;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.8));
+}
+
+.xray__dot b,
+.xray__n {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+  clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+}
+
+.xray__lines {
+  display: none;
+}
+
+.xray__list {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.xray__item a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.5rem;
+  padding: 0.5rem 0.9rem 0.5rem 0.6rem;
+  background: var(--graphite-2);
+  border-left: 3px solid var(--blue);
+  text-decoration: none;
+}
+
+.xray__n {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+}
+
+.xray__txt strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+
+.xray__txt span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+
+.xray figcaption {
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.xray__item a:hover .xray__txt strong {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+}
+
+/* O ponto e a trilha do componente acompanham o mouse e o foco do rótulo. */
+.xray:has(.xray__item[data-i='1']:is(:hover, :focus-within)) .xray__dot[data-i='1'] b,
+.xray:has(.xray__item[data-i='2']:is(:hover, :focus-within)) .xray__dot[data-i='2'] b,
+.xray:has(.xray__item[data-i='3']:is(:hover, :focus-within)) .xray__dot[data-i='3'] b,
+.xray:has(.xray__item[data-i='4']:is(:hover, :focus-within)) .xray__dot[data-i='4'] b,
+.xray:has(.xray__item[data-i='5']:is(:hover, :focus-within)) .xray__dot[data-i='5'] b,
+.xray:has(.xray__item[data-i='6']:is(:hover, :focus-within)) .xray__dot[data-i='6'] b,
+.xray:has(.xray__item[data-i='7']:is(:hover, :focus-within)) .xray__dot[data-i='7'] b {
+  background: #fff;
+}
+
+.xray:has(.xray__item[data-i='1']:is(:hover, :focus-within)) polyline[data-i='1'],
+.xray:has(.xray__item[data-i='2']:is(:hover, :focus-within)) polyline[data-i='2'],
+.xray:has(.xray__item[data-i='3']:is(:hover, :focus-within)) polyline[data-i='3'],
+.xray:has(.xray__item[data-i='4']:is(:hover, :focus-within)) polyline[data-i='4'],
+.xray:has(.xray__item[data-i='5']:is(:hover, :focus-within)) polyline[data-i='5'],
+.xray:has(.xray__item[data-i='6']:is(:hover, :focus-within)) polyline[data-i='6'],
+.xray:has(.xray__item[data-i='7']:is(:hover, :focus-within)) polyline[data-i='7'] {
+  stroke: var(--accent-strong);
+  stroke-width: 3;
+}
+
+@media (min-width: 620px) {
+  .xray__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .xray__dot::after {
+    content: '';
+    position: absolute;
+    inset: -0.4rem;
+    border: 2px solid var(--accent);
+    clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+    animation: xray-ping 2.2s ease-out 1.2s 3 both;
+  }
+}
+
+@keyframes xray-ping {
+  from {
+    opacity: 0.9;
+    transform: scale(0.8);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+@media (min-width: 1100px) {
+  .xray__stage {
+    aspect-ratio: 1120 / 570;
+  }
+
+  .xray__photo {
+    position: absolute;
+    left: 27.679%;
+    top: 0;
+    width: 44.643%;
+  }
+
+  .xray__lines {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .xray__lines polyline {
+    fill: none;
+    stroke: var(--blue);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .xray__list {
+    position: absolute;
+    inset: 0;
+    display: block;
+    margin: 0;
+  }
+
+  .xray__item {
+    position: absolute;
+    top: var(--y);
+    width: 26%;
+    transform: translateY(-50%);
+  }
+
+  .xray__item--l {
+    left: 0;
+  }
+
+  .xray__item--r {
+    right: 0;
+  }
+
+  .xray__item a {
+    min-height: 4rem;
+    background: rgba(13, 26, 44, 0.86);
+  }
+
+  .xray__item--l a {
+    flex-direction: row-reverse;
+    padding: 0.5rem 0.6rem 0.5rem 0.9rem;
+    border-left: 0;
+    border-right: 3px solid var(--blue);
+    text-align: right;
+  }
+
+  .xray__txt strong {
+    font-size: clamp(1.1rem, 1.9cqw, 1.5rem);
+  }
+
+  .xray__txt span {
+    font-size: clamp(0.8125rem, 1.2cqw, 1rem);
+  }
+
+  .xray figcaption {
+    text-align: center;
+  }
+}

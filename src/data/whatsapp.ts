@@ -73,6 +73,35 @@ export const whatsappContexts = {
     serviceCategory: 'contato',
     message: 'Olá! Vim pelo site da LCPC Gaming e gostaria de tirar uma dúvida sobre horários, retirada ou entrega.',
   },
+  // Sintomas: usadas pelo seletor "O que está acontecendo com seu equipamento?". Textos novos, para o cliente validar.
+  naoLiga: {
+    serviceCategory: 'sintoma_nao_liga',
+    message: 'Olá! Vim pelo site da LCPC Gaming e meu equipamento não liga. Posso informar o modelo e explicar o que acontece ao apertar o botão de ligar?',
+  },
+  semVideo: {
+    serviceCategory: 'sintoma_sem_video',
+    message: 'Olá! Vim pelo site da LCPC Gaming e meu equipamento liga, mas não dá vídeo. Posso informar o modelo ou a configuração e explicar o que aparece na tela?',
+  },
+  esquentando: {
+    serviceCategory: 'sintoma_esquentando',
+    message: 'Olá! Vim pelo site da LCPC Gaming e meu equipamento está esquentando e fazendo barulho. Posso informar o modelo e descrever quando isso acontece?',
+  },
+  travando: {
+    serviceCategory: 'sintoma_travando',
+    message: 'Olá! Vim pelo site da LCPC Gaming e meu equipamento está travando ou lento. Posso informar o modelo e explicar quando isso acontece?',
+  },
+  reiniciando: {
+    serviceCategory: 'sintoma_reiniciando',
+    message: 'Olá! Vim pelo site da LCPC Gaming e meu computador reinicia ou desliga sozinho. Posso informar a configuração e dizer quando isso acontece?',
+  },
+  telaQuebrada: {
+    serviceCategory: 'sintoma_tela_quebrada',
+    message: 'Olá! Vim pelo site da LCPC Gaming e a tela do meu notebook está quebrada ou com falhas. Posso enviar a marca, o modelo e uma foto?',
+  },
+  naoCarrega: {
+    serviceCategory: 'sintoma_nao_carrega',
+    message: 'Olá! Vim pelo site da LCPC Gaming e meu notebook não carrega. Posso enviar a marca, o modelo e explicar o que acontece ao ligar o carregador?',
+  },
 } as const;
 
 export type WhatsappContext = keyof typeof whatsappContexts;

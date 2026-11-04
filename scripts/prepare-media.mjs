@@ -73,8 +73,8 @@ async function buildHero() {
     .png()
     .toBuffer();
 
-  await sharp(composed).extract({ left: 0, top: 60, width: CANVAS_W, height: CANVAS_H - 60 }).jpeg(jpeg).toFile(join(OUT, 'hero-desktop.jpg'));
-  await sharp(composed).extract({ left: 130, top: 450, width: 1180, height: 800 }).jpeg(jpeg).toFile(join(OUT, 'hero-mobile.jpg'));
+  await sharp(composed).extract({ left: 0, top: 60, width: CANVAS_W, height: CANVAS_H - 60 }).jpeg(jpeg).toFile(join(OUT, 'pc-gamer-gabinete-branco-rgb-vila-marari.jpg'));
+  await sharp(composed).extract({ left: 130, top: 450, width: 1180, height: 800 }).jpeg(jpeg).toFile(join(OUT, 'pc-gamer-gabinete-rgb-recorte-celular.jpg'));
 }
 
 async function buildBrand() {
@@ -84,13 +84,13 @@ async function buildBrand() {
   const { width, height } = await sharp(logo).metadata();
   // Só o monograma LCPC: "Gaming" fica ilegível em tamanho de favicon.
   const mono = await sharp(logo).extract({ left: 0, top: 0, width, height: Math.round(height * 0.64) }).toBuffer();
-  for (const size of [48, 180]) {
+  for (const size of [48, 180, 192, 512]) {
     const inner = Math.round(size * 0.86);
     const mark = await sharp(mono).resize({ width: inner }).png().toBuffer();
     await sharp({ create: { width: size, height: size, channels: 4, background: { ...GRAPHITE, alpha: 1 } } })
       .composite([{ input: mark, gravity: 'center' }])
       .png({ compressionLevel: 9 })
-      .toFile(join('public', size === 48 ? 'favicon.png' : 'apple-touch-icon.png'));
+      .toFile(join('public', { 48: 'favicon.png', 180: 'apple-touch-icon.png', 192: 'icon-192.png', 512: 'icon-512.png' }[size]));
   }
 
   await sharp(join(SRC, 'logos/logo-tech.png'))
@@ -100,13 +100,27 @@ async function buildBrand() {
 }
 
 async function buildPhotos() {
-  await crop('hero-pc-gamer.jpeg', 'gabinete-interior.jpg', { left: 92, top: 500, width: 668, height: 640 });
-  await crop('luis-carlos.jpeg', 'luis-carlos.jpg', { left: 0, top: 90, width: 1200, height: 1400 });
-  await crop('conserto-notebook.jpeg', 'conserto-notebook.jpg', { left: 0, top: 0, width: 1200, height: 1400 });
-  await crop('detalhe-notebook.jpeg', 'detalhe-notebook.jpg', { left: 0, top: 450, width: 1200, height: 960 });
-  await crop('bancada-lcpc.jpeg', 'bancada-lcpc.jpg', { left: 0, top: 30, width: 1200, height: 1440 });
-  await crop('extras/conserto-de-notebook-vila-marari.jpeg', 'bancada-ferramentas.jpg', { left: 0, top: 330, width: 1200, height: 1080 });
-  await crop('extras/conserto-notebook-acer-sao-paulo.jpeg', 'bancada-notebook-aberto.jpg', { left: 0, top: 320, width: 1200, height: 1080 });
+  await crop('hero-pc-gamer.jpeg', 'pc-gamer-interior-water-cooler-memorias-rgb.jpg', { left: 92, top: 500, width: 668, height: 640 });
+  await crop('luis-carlos.jpeg', 'luis-carlos-assistencia-tecnica-lcpc-gaming.jpg', { left: 0, top: 90, width: 1200, height: 1400 });
+  await crop('conserto-notebook.jpeg', 'conserto-de-notebook-bancada-vila-marari.jpg', { left: 0, top: 0, width: 1200, height: 1400 });
+  await crop('detalhe-notebook.jpeg', 'conserto-de-notebook-interior-placa-mae.jpg', { left: 0, top: 450, width: 1200, height: 960 });
+  await crop('bancada-lcpc.jpeg', 'assistencia-tecnica-bancada-lcpc-gaming-vila-marari.jpg', { left: 0, top: 30, width: 1200, height: 1440 });
+  await crop('extras/conserto-de-notebook-vila-marari.jpeg', 'conserto-de-notebook-chaves-de-precisao-bancada.jpg', { left: 0, top: 330, width: 1200, height: 1080 });
+  await crop('extras/conserto-notebook-acer-sao-paulo.jpeg', 'conserto-de-notebook-acer-aberto-sao-paulo.jpg', { left: 0, top: 320, width: 1200, height: 1080 });
+  // Fotos extras (nunca as de nao-publicar-macbook).
+  await crop('extras/lcpc-conserto-de-notebook.jpeg', 'conserto-de-notebook-placa-mae-chave-de-precisao.jpg', { left: 0, top: 0, width: 1200, height: 1500 });
+  await crop('extras/conserto-de-notebook-marari.jpeg', 'bancada-lcpc-gaming-luz-de-anel-logo-no-monitor.jpg', { left: 0, top: 0, width: 1200, height: 1450 });
+  await crop('extras/assistencia-computador-gamer-zona-sul.jpeg', 'assistencia-tecnica-notebook-aberto-mao-positivo.jpg', { left: 0, top: 150, width: 1200, height: 1200 });
+}
+
+/** Quadros do vídeo (464x832) usados como fotos. Exige ffmpeg. */
+function buildStills() {
+  const source = join(SRC, 'video-pc-gamer.mp4');
+  const still = (second, name) =>
+    execFileSync('ffmpeg', ['-y', '-v', 'error', '-ss', String(second), '-i', source, '-frames:v', '1', '-q:v', '2', join(OUT, name)]);
+  still(22.5, 'pc-gamer-gabinete-branco-borda-luminosa-video.jpg');
+  still(10, 'pc-gamer-gabinete-lateral-luz-verde-video.jpg');
+  still(17, 'pc-gamer-gabinete-branco-luz-rosa-video.jpg');
 }
 
 function buildVideo() {
@@ -125,6 +139,7 @@ function buildVideo() {
 await buildHero();
 await buildBrand();
 await buildPhotos();
+buildStills();
 if (!process.argv.includes('--sem-video')) buildVideo();
 
 console.log('Mídias geradas.');

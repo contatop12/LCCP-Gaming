@@ -7,13 +7,16 @@
   <!-- Ajustes desta página (lidos pelo build e removidos do HTML final). lcpc:schema acrescenta o Person ao JSON-LD. -->
   <meta name="lcpc:breadcrumb" content="Sobre">
   <meta name="lcpc:schema" content="person">
+  <meta name="lcpc:type" content="AboutPage">
+  <meta name="lcpc:image" content="luisCarlos">
+  <meta name="lcpc:og" content="Luis Carlos e a LCPC Gaming">
 </head>
 <body>
 <main>
 
-  <section class="page-hero">
-    <div class="wrap page-hero__grid page-hero__grid--tall">
-      <div>
+  <section class="phero">
+    <div class="wrap phero__grid">
+      <div class="phero__text">
         <h1><lcpc-business field="owner.name" /> e a LCPC Gaming</h1>
         <p class="lead">
           A LCPC Gaming é uma assistência técnica de computadores e notebooks na Vila Marari, em São Paulo. <lcpc-business field="owner.name" /> é o proprietário da empresa e o responsável pelos serviços.
@@ -22,22 +25,48 @@
           O trabalho cobre diagnóstico, conserto, limpeza, formatação e upgrade. Agora a empresa também amplia a atuação em montagem, upgrade e manutenção de desktops gamer, com uma <a class="text-link" href="/pc-gamer/">página dedicada a PC gamer</a>.
         </p>
         <p class="pull-line"><lcpc-business field="slogan" />.</p>
+        <div class="actions">
+          <lcpc-whatsapp context="geral" location="hero" />
+          <a class="btn btn--ghost" href="/servicos/">Ver os serviços</a>
+        </div>
       </div>
-      <lcpc-photo name="luisCarlos" sizes="(min-width: 900px) 40vw, 100vw" class="photo--cut" priority />
+      <div class="phero__media phero__media--single">
+        <lcpc-tile name="luisCarlos" sizes="(min-width: 900px) 40vw, 100vw" class="tile--wide tile--tall" pos="50% 25%" priority />
+      </div>
     </div>
   </section>
 
-  <section class="section section--raised" aria-labelledby="registros">
+  <section class="band" aria-labelledby="atendimento">
+    <div class="wrap bento">
+      <div class="tile tile--text tile--navy c5">
+        <h2 id="atendimento">Como o atendimento funciona</h2>
+        <p>O contato começa pelo WhatsApp e o orçamento parte do que o diagnóstico encontra.</p>
+        <p><a class="text-link" href="/servicos/">Ver o catálogo de serviços</a></p>
+        <p><lcpc-whatsapp context="diagnostico" location="sobre_atendimento" variant="text">Pedir diagnóstico no WhatsApp</lcpc-whatsapp></p>
+      </div>
+      <ol class="steps steps--tiles c7">
+        <li><strong>Você escreve</strong> o modelo do equipamento e descreve o que está acontecendo. <a class="text-link" href="/contato/">Ver como falar com a LCPC Gaming</a></li>
+        <li><strong>O diagnóstico testa</strong> memória, armazenamento, fonte, bateria e placa de vídeo. <a class="text-link" href="/servicos/#diagnostico">Ver o que o diagnóstico inclui</a></li>
+        <li><strong>O laudo técnico traz</strong> o orçamento de reparo, antes de qualquer troca de peça.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="band band--raised" aria-labelledby="registros">
     <div class="wrap">
-      <div class="section-head">
+      <div class="head">
         <h2 id="registros">Registros reais de bancada</h2>
         <p>Equipamentos abertos, ferramentas de precisão e o ambiente de trabalho, como são no dia a dia.</p>
       </div>
-      <div class="gallery">
-        <lcpc-photo name="bancada" sizes="(min-width: 900px) 46vw, 100vw" />
-        <lcpc-photo name="bancadaFerramentas" sizes="(min-width: 900px) 46vw, 100vw" />
-        <lcpc-photo name="bancadaNotebookAberto" sizes="(min-width: 900px) 46vw, 100vw" />
-        <lcpc-photo name="detalheNotebook" sizes="(min-width: 900px) 46vw, 100vw" />
+      <div class="bento">
+        <lcpc-tile name="bancada" sizes="(min-width: 760px) 30vw, 100vw" class="c4 r2" pos="50% 45%" />
+        <lcpc-tile name="bancadaFerramentas" sizes="(min-width: 760px) 40vw, 100vw" class="c5" pos="50% 60%" />
+        <lcpc-tile name="placaMae" sizes="(min-width: 760px) 30vw, 100vw" class="c3" pos="45% 45%" />
+        <lcpc-tile name="bancadaNotebookAberto" sizes="(min-width: 760px) 40vw, 100vw" class="c5" pos="50% 60%" />
+        <lcpc-tile name="detalheNotebook" sizes="(min-width: 760px) 30vw, 100vw" class="c3" pos="50% 50%" />
+        <lcpc-tile name="bancadaLuz" sizes="(min-width: 760px) 40vw, 100vw" class="c5" pos="50% 40%" />
+        <lcpc-tile name="bancadaPositivo" sizes="(min-width: 760px) 30vw, 100vw" class="c3" pos="50% 55%" />
+        <lcpc-tile name="gabineteInterior" sizes="(min-width: 760px) 30vw, 100vw" class="c4" pos="50% 45%" />
       </div>
     </div>
   </section>

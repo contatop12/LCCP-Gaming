@@ -108,4 +108,53 @@ export const faq = {
         'Sim. O catálogo inclui a troca de tela, fonte interna e outros componentes de all-in-one. Envie a marca e o modelo pelo WhatsApp e descreva o defeito.',
     },
   ],
+  servicos: [
+    {
+      question: 'Como saber qual serviço eu preciso?',
+      answer:
+        'Se você ainda não sabe qual é o defeito, comece pelo diagnóstico técnico: os testes apontam a causa e o resultado é um laudo técnico com o orçamento de reparo. Se já sabe o que quer, como limpeza, formatação ou upgrade, envie o modelo e o pedido pelo WhatsApp.',
+    },
+    {
+      question: 'Qual a diferença entre serviços principais e complementares?',
+      answer:
+        'Os principais são o foco da LCPC Gaming: diagnóstico, conserto, limpeza, montagem e upgrade, formatação e remoção de vírus. Os complementares, como reparo eletrônico de placas e recuperação de dados, são feitos sob avaliação de cada caso.',
+    },
+    {
+      question: 'Dá para fazer mais de um serviço de uma vez?',
+      answer:
+        'Dá. É comum combinar, por exemplo, limpeza com troca de pasta térmica e upgrade de SSD. Descreva tudo na mesma mensagem e informe o modelo do equipamento para que o orçamento reúna os itens.',
+    },
+    {
+      question: 'Quanto custa um serviço do catálogo?',
+      answer:
+        'Valor e prazo dependem do defeito, do modelo e das peças envolvidas, por isso não são publicados aqui. Envie o modelo e o sintoma pelo WhatsApp para pedir o orçamento do seu caso.',
+    },
+    {
+      question: 'A LCPC Gaming também faz site e identidade visual?',
+      answer:
+        'Sim, em um bloco à parte do catálogo. A LCPC Gaming desenvolve sites, landing pages e identidade visual. Converse sobre o projeto pelo WhatsApp.',
+    },
+  ],
+  contato: [
+    {
+      question: 'Quais são os horários de atendimento?',
+      answer:
+        'Os horários ainda não estão publicados neste site. Pergunte pelo WhatsApp antes de ir até a Vila Marari, para confirmar se há alguém na bancada.',
+    },
+    {
+      question: 'Vocês fazem retirada e entrega?',
+      answer:
+        'Retirada, entrega, atendimento em domicílio e no escritório dependem de consulta de condições e disponibilidade. Informe sua região e o equipamento pelo WhatsApp.',
+    },
+    {
+      question: 'Como chego à LCPC Gaming?',
+      answer:
+        'O endereço é Rua Maria Pais de Barros, 329, Vila Marari, São Paulo - SP, CEP 04402-140. A Vila Marari fica na Zona Sul de São Paulo. O botão Como chegar abre o trajeto no Google Maps.',
+    },
+    {
+      question: 'Preciso avisar antes de levar o equipamento?',
+      answer:
+        'Avise pelo WhatsApp, informando o equipamento e o que está acontecendo. Assim a conversa já começa com os dados do orçamento e as condições do atendimento ficam combinadas.',
+    },
+  ],
 } satisfies Record<string, FaqItem[]>;

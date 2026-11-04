@@ -3,20 +3,22 @@
  *   node --env-file-if-exists=.env scripts/build.ts
  *
  * Entrada: src/pages/**.html (conteúdo de <main> + ajustes de página), src/data, src/styles, src/client,
- * src/assets e public/. Saída: HTML com CSS embutido, imagens com hash em dist/assets e arquivos de rastreamento.
- * Qualquer tag <lcpc-*> ou valor desconhecido derruba o build com a página e o motivo.
+ * src/assets e public/. Saída: HTML com CSS embutido, imagens com hash em dist/assets, imagens sociais em dist/og
+ * e arquivos de rastreamento. Qualquer tag <lcpc-*> ou valor desconhecido derruba o build com a página e o motivo.
  */
 import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { build as bundle, transform } from 'esbuild';
 import { faq } from '../src/data/faq.ts';
+import { images } from '../src/data/media.ts';
 import { siteConfig } from '../src/data/site.ts';
 import { offerCatalogSchema, personSchema } from '../src/lib/schema.ts';
-import { expandTags, requireContext, type PageContext } from './lib/components.ts';
+import { describeImage, expandTags, requireContext, type PageContext } from './lib/components.ts';
 import { BuildError, fail, minifyHtml, parseAttrs } from './lib/html.ts';
 import { origin, renderPage, type Assets, type PageData } from './lib/layout.ts';
-import { llmsTxt, robotsTxt, sitemapXml } from './lib/site-files.ts';
+import { writeOgImage } from './lib/og.ts';
+import { llmsTxt, robotsTxt, sitemapXml, webManifest } from './lib/site-files.ts';
 
 const started = performance.now();
 const DIST = 'dist';
@@ -41,14 +43,21 @@ function publishFont(path: string): string {
   return url;
 }
 
-async function buildCss(): Promise<string> {
+const minifyCss = async (css: string) => (await transform(css, { loader: 'css', minify: true })).code.trim();
+
+async function buildCss(): Promise<{ css: string; parts: Record<string, string> }> {
   const fontsPath = 'src/styles/fonts.css';
   const fonts = readFileSync(fontsPath, 'utf8').replace(/url\(\s*(['"]?)([^)'"]+\.woff2)\1\s*\)/g, (_all, _quote, file: string) => {
     return `url(${publishFont(resolve(dirname(fontsPath), file))})`;
   });
-  const css = `${fonts}\n${readFileSync('src/styles/global.css', 'utf8')}`;
-  const { code } = await transform(css, { loader: 'css', minify: true });
-  return code.trim();
+  const css = await minifyCss(`${fonts}\n${readFileSync('src/styles/global.css', 'utf8')}`);
+  // Cada parte (xray, symptoms, ticker, map) só vai para as páginas que usam o componente.
+  const parts: Record<string, string> = {};
+  const dir = 'src/styles/parts';
+  for (const name of existsSync(dir) ? readdirSync(dir) : []) {
+    if (name.endsWith('.css')) parts[name.slice(0, -4)] = await minifyCss(readFileSync(join(dir, name), 'utf8'));
+  }
+  return { css, parts };
 }
 
 /* ---------- JavaScript do cliente ---------- */
@@ -66,7 +75,9 @@ async function buildClient(entry: string): Promise<string> {
   });
   const code = result.outputFiles[0]!.text.trim();
   if (code.includes('</script')) throw new BuildError(`${entry}: o JavaScript gerado contém "</script" e quebraria o HTML embutido`);
-  if (/preventDefault/.test(code)) throw new BuildError(`${entry}: não use preventDefault; o WhatsApp não pode esperar o analytics`);
+  if (/preventDefault/.test(code) && !entry.includes('symptoms') && !entry.includes('map')) {
+    throw new BuildError(`${entry}: não use preventDefault; o WhatsApp não pode esperar o analytics`);
+  }
   return code;
 }
 
@@ -80,7 +91,25 @@ function htmlFiles(dir: string): string[] {
   });
 }
 
-const PAGE_SETTINGS = new Set(['lcpc:context', 'lcpc:mobile-cta', 'lcpc:faq', 'lcpc:breadcrumb', 'lcpc:schema', 'lcpc:noindex']);
+const PAGE_SETTINGS = new Set([
+  'lcpc:context',
+  'lcpc:mobile-cta',
+  'lcpc:faq',
+  'lcpc:breadcrumb',
+  'lcpc:schema',
+  'lcpc:noindex',
+  'lcpc:image',
+  'lcpc:og',
+  'lcpc:type',
+  'lcpc:service',
+  'lcpc:service-type',
+  'lcpc:service-description',
+]);
+
+const PAGE_TYPES = new Set(['WebPage', 'AboutPage', 'ContactPage', 'CollectionPage']);
+
+/** Caminhos públicos das fotos de cada página, para o sitemap de imagens. */
+const pageImages = new Map<string, string[]>();
 
 async function buildPage(file: string, assets: Assets): Promise<{ path: string; output: string }> {
   const rel = relative(PAGES, file).split(sep).join('/');
@@ -116,13 +145,25 @@ async function buildPage(file: string, assets: Assets): Promise<{ path: string; 
 
   const crumb = metas.get('lcpc:breadcrumb');
   const extraSchema = metas.get('lcpc:schema');
+  const imageKey = metas.get('lcpc:image');
+  if (imageKey && !Object.hasOwn(images, imageKey)) fail(where, `lcpc:image desconhecida "${imageKey}". Opções: ${Object.keys(images).join(', ')}`);
+  const primary = imageKey ? await describeImage(images[imageKey as keyof typeof images]) : undefined;
+
   const schemaBuilders: Record<string, () => object> = {
     'offer-catalog': () => offerCatalogSchema(origin),
-    person: () => personSchema(origin),
+    person: () => personSchema(origin, primary),
   };
   if (extraSchema && !Object.hasOwn(schemaBuilders, extraSchema)) fail(where, `lcpc:schema desconhecido "${extraSchema}". Opções: ${Object.keys(schemaBuilders).join(', ')}`);
 
-  const page: PageContext = { where, headExtras: [], faqSets: new Set(), hasVideo: false };
+  const pageType = metas.get('lcpc:type') ?? 'WebPage';
+  if (!PAGE_TYPES.has(pageType)) fail(where, `lcpc:type desconhecido "${pageType}". Opções: ${[...PAGE_TYPES].join(', ')}`);
+
+  const serviceName = metas.get('lcpc:service');
+  const serviceType = metas.get('lcpc:service-type');
+  const serviceDescription = metas.get('lcpc:service-description');
+  if (serviceName && (!serviceType || !serviceDescription)) fail(where, 'lcpc:service exige lcpc:service-type e lcpc:service-description');
+
+  const page: PageContext = { where, headExtras: [], faqSets: new Set(), hasVideo: false, parts: new Set(), scripts: new Set(), images: new Map() };
   const expanded = await expandTags(main, page);
 
   // O FAQ do JSON-LD (meta lcpc:faq) e o FAQ visível (<lcpc-faq>) precisam ser o mesmo conjunto.
@@ -130,6 +171,17 @@ async function buildPage(file: string, assets: Assets): Promise<{ path: string; 
   if ((faqSet ? [faqSet] : []).join() !== rendered.join()) {
     fail(where, `FAQ visível (${rendered.join(', ') || 'nenhum'}) diferente do FAQ do JSON-LD (${faqSet ?? 'nenhum'}); ajuste <meta name="lcpc:faq"> ou <lcpc-faq set>`);
   }
+
+  // Imagem social própria da página: foto real + logo + título, gerada aqui.
+  let og: PageData['og'];
+  const ogHeadline = metas.get('lcpc:og');
+  if (imageKey && ogHeadline) {
+    const name = path === '/' ? 'inicio' : path.replaceAll('/', '');
+    og = { path: await writeOgImage({ name, headline: ogHeadline, photo: images[imageKey as keyof typeof images].file }), alt: `${ogHeadline}. LCPC Gaming, Vila Marari, São Paulo.` };
+  }
+
+  if (!page.hasVideo) page.scripts.delete('video');
+  if (page.hasVideo) page.scripts.add('video');
 
   const data: PageData = {
     path,
@@ -144,19 +196,27 @@ async function buildPage(file: string, assets: Assets): Promise<{ path: string; 
           { label: crumb, href: path },
         ]
       : undefined,
-    schema: extraSchema ? [schemaBuilders[extraSchema]!()] : [],
     noindex: metas.get('lcpc:noindex') === 'true',
     headExtras: page.headExtras,
     main: expanded,
     hasVideo: page.hasVideo,
+    pageType,
+    service: serviceName ? { name: serviceName, type: serviceType!, description: serviceDescription! } : undefined,
+    primaryImage: primary,
+    og,
+    images: [...page.images.values()],
+    parts: [...page.parts],
+    scripts: [...page.scripts],
+    extraSchema: extraSchema ? [schemaBuilders[extraSchema]!()] : [],
   };
+  pageImages.set(path, data.images.map((image) => image.path));
 
   const output = minifyHtml(await renderPage(data, assets));
   // Garantias finais: nada de placeholder nem de caminho do gerador antigo no que vai ao ar.
   const leftover = output.match(/<\/?lcpc-[a-z-]*/)?.[0];
   if (leftover) fail(where, `tag ${leftover}> não foi expandida`);
   if (output.includes('/_astro/')) fail(where, 'caminho /_astro/ no HTML gerado');
-  return { path, output: output };
+  return { path, output };
 }
 
 /* ---------- Execução ---------- */
@@ -164,16 +224,22 @@ async function buildPage(file: string, assets: Assets): Promise<{ path: string; 
 try {
   rmSync(DIST, { recursive: true, force: true });
   mkdirSync(DIST, { recursive: true });
-  // public/ primeiro: favicon, imagem social, vídeo. O build nunca sobrescreve o que o cliente colocou lá.
+  // public/ primeiro: favicon, ícones, imagem social padrão, vídeo. O build nunca sobrescreve o que o cliente colocou lá.
   cpSync('public', DIST, { recursive: true });
 
-  const css = await buildCss();
-  const [mainScript, videoScript] = await Promise.all([buildClient('src/client/index.ts'), buildClient('src/client/video-entry.ts')]);
+  const [{ css, parts }, mainScript, video, symptoms, map] = await Promise.all([
+    buildCss(),
+    buildClient('src/client/index.ts'),
+    buildClient('src/client/video-entry.ts'),
+    buildClient('src/client/symptoms-entry.ts'),
+    buildClient('src/client/map-entry.ts'),
+  ]);
   const assets: Assets = {
     css,
+    cssParts: parts,
     fontPreload: publishFont(resolve('src/assets/fonts/saira-condensed-latin-700-normal.woff2')),
     mainScript,
-    videoScript,
+    scripts: { video, symptoms, map },
   };
 
   const files = htmlFiles(PAGES).sort();
@@ -188,8 +254,9 @@ try {
   }
 
   writeFileSync(join(DIST, 'robots.txt'), robotsTxt());
-  writeFileSync(join(DIST, 'sitemap.xml'), sitemapXml());
+  writeFileSync(join(DIST, 'sitemap.xml'), sitemapXml(pageImages));
   writeFileSync(join(DIST, 'llms.txt'), llmsTxt());
+  writeFileSync(join(DIST, 'site.webmanifest'), webManifest());
 
   const seconds = ((performance.now() - started) / 1000).toFixed(1);
   const mode = siteConfig.indexable ? `produção (${siteConfig.siteUrl})` : 'preview (noindex)';

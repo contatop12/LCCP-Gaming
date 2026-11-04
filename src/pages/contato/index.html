@@ -3,45 +3,87 @@
 <head>
   <meta charset="utf-8">
   <title>Contato e endereço da LCPC Gaming na Vila Marari, São Paulo</title>
-  <meta name="description" content="Endereço, WhatsApp e e-mail da LCPC Gaming: Rua Maria Pais de Barros, 329, Vila Marari, São Paulo. Peça orçamento e consulte horários pelo WhatsApp."
+  <meta name="description" content="Endereço, WhatsApp e e-mail da LCPC Gaming: Rua Maria Pais de Barros, 329, Vila Marari, São Paulo. Peça orçamento e consulte horários pelo WhatsApp.">
   <!-- Ajustes desta página (lidos pelo build e removidos do HTML final). -->
   <meta name="lcpc:context" content="contato">
   <meta name="lcpc:mobile-cta" content="Falar no WhatsApp">
   <meta name="lcpc:breadcrumb" content="Contato">
+  <meta name="lcpc:faq" content="contato">
+  <meta name="lcpc:type" content="ContactPage">
+  <meta name="lcpc:image" content="bancadaLuz">
+  <meta name="lcpc:og" content="Contato e endereço da LCPC Gaming na Vila Marari">
 </head>
 <body>
 <main>
 
-  <section class="page-hero">
-    <div class="wrap">
-      <h1 class="page-hero__wide">Fale com a LCPC Gaming</h1>
-      <p class="lead">
-        O WhatsApp é o caminho mais direto para pedir um orçamento e para tirar dúvidas sobre horários, retirada e entrega.
-      </p>
-    </div>
-  </section>
-
-  <section class="section section--raised" aria-labelledby="endereco">
-    <div class="wrap split">
-      <h2 id="endereco" class="split__head">Endereço e contatos</h2>
-      <lcpc-location context="contato" location="contato" label="Falar no WhatsApp" />
-    </div>
-  </section>
-
-  <section class="section" aria-labelledby="antes">
-    <div class="wrap split">
-      <h2 id="antes" class="split__head">Antes de enviar a mensagem</h2>
-      <div>
-        <p>Para agilizar o orçamento, escolha a mensagem pronta do seu assunto:</p>
-        <ul class="link-rows">
-          <li><lcpc-whatsapp context="notebook" location="contato_assunto" variant="text">Conserto de notebook: marca, modelo e sintoma</lcpc-whatsapp></li>
-          <li><lcpc-whatsapp context="computador" location="contato_assunto" variant="text">Conserto de computador: modelo ou configuração e sintoma</lcpc-whatsapp></li>
-          <li><lcpc-whatsapp context="montagem" location="contato_assunto" variant="text">Montagem de PC gamer: jogos, orçamento e peças que já tem</lcpc-whatsapp></li>
-          <li><lcpc-whatsapp context="upgrade" location="contato_assunto" variant="text">Upgrade de PC gamer: configuração atual e o que quer melhorar</lcpc-whatsapp></li>
+  <section class="phero">
+    <div class="wrap phero__grid">
+      <div class="phero__text">
+        <h1>Fale com a LCPC Gaming</h1>
+        <p class="lead">
+          O WhatsApp é o caminho mais direto para pedir um orçamento e para tirar dúvidas sobre horários, retirada e entrega. A LCPC Gaming fica na Vila Marari, bairro da Zona Sul de São Paulo.
+        </p>
+        <div class="actions">
+          <lcpc-whatsapp context="contato" location="hero">Falar no WhatsApp</lcpc-whatsapp>
+          <a class="btn btn--ghost" href="#endereco">Ver endereço e mapa</a>
+        </div>
+        <p class="hint">Informe o equipamento e o que está acontecendo. Para horários, retirada e entrega, pergunte direto pelo WhatsApp.</p>
+        <ul class="hero__tags">
+          <li>Vila Marari</li>
+          <li>Zona Sul de São Paulo</li>
+          <li>WhatsApp <lcpc-business field="phone.display" /></li>
         </ul>
+      </div>
+      <div class="phero__media">
+        <lcpc-tile name="bancadaLuz" sizes="(min-width: 900px) 46vw, 100vw" class="tile--wide" pos="50% 40%" priority />
+        <lcpc-tile name="bancadaFerramentas" sizes="(min-width: 900px) 23vw, 50vw" widths="480,800" pos="50% 60%" />
+        <lcpc-tile name="luisCarlos" sizes="(min-width: 900px) 23vw, 50vw" widths="480,800" pos="50% 25%" />
       </div>
     </div>
   </section>
+
+  <lcpc-location context="contato" location="contato" label="Falar no WhatsApp" id="endereco" title="Endereço e contatos"
+    intro="Rua Maria Pais de Barros, na Vila Marari, Zona Sul de São Paulo. O mapa só carrega depois do seu clique." />
+
+  <section class="band band--raised" aria-labelledby="antes">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="antes">Antes de enviar a mensagem</h2>
+        <p>Para agilizar o orçamento, escolha a mensagem pronta do seu assunto e complete com os dados do equipamento.</p>
+      </div>
+      <div class="bento">
+        <article class="tile tile--text c3">
+          <h3>Notebook</h3>
+          <p>Marca, modelo e sintoma.</p>
+          <p><lcpc-whatsapp context="notebook" location="contato_assunto" variant="text">Conserto de notebook</lcpc-whatsapp></p>
+        </article>
+        <article class="tile tile--text tile--navy c3">
+          <h3>Computador</h3>
+          <p>Modelo ou configuração e sintoma.</p>
+          <p><lcpc-whatsapp context="computador" location="contato_assunto" variant="text">Conserto de computador</lcpc-whatsapp></p>
+        </article>
+        <article class="tile tile--text c3">
+          <h3>Montagem</h3>
+          <p>Jogos, orçamento e peças que já tem.</p>
+          <p><lcpc-whatsapp context="montagem" location="contato_assunto" variant="text">Montagem de PC gamer</lcpc-whatsapp></p>
+        </article>
+        <article class="tile tile--text tile--blue c3">
+          <h3>Upgrade</h3>
+          <p>Configuração atual e o que quer melhorar.</p>
+          <p><lcpc-whatsapp context="upgrade" location="contato_assunto" variant="text">Upgrade de PC gamer</lcpc-whatsapp></p>
+        </article>
+      </div>
+      <p class="section-foot">Ainda não sabe qual é o defeito? Veja <a class="text-link" href="/#sintomas">o seletor de sintomas</a> ou o <a class="text-link" href="/servicos/#diagnostico">diagnóstico técnico</a>.</p>
+    </div>
+  </section>
+
+  <lcpc-faq set="contato" title="Dúvidas sobre o atendimento" lead="Horários, retirada e entrega, e como chegar." photo="bancadaNotebookAberto" photo-pos="50% 60%" />
+
+  <lcpc-cta-band
+    title="Prefere falar agora?"
+    text="Envie o modelo e o sintoma, ou pergunte sobre horários, retirada e entrega."
+    context="contato"
+    label="Falar no WhatsApp" />
 
 </main>
 </body>

@@ -3,12 +3,22 @@
  * As páginas em src/pages só trazem o conteúdo de <main> e os ajustes de página (meta lcpc:*).
  */
 import { business, directionsUrl, fullAddress } from '../../src/data/business.ts';
+import { categoriesByPriority } from '../../src/data/catalog.ts';
 import type { FaqItem } from '../../src/data/faq.ts';
-import { logoImage, socialImage } from '../../src/data/media.ts';
+import { logoImage, socialImage, video } from '../../src/data/media.ts';
 import { mainNav, siteConfig } from '../../src/data/site.ts';
 import type { WhatsappContext } from '../../src/data/whatsapp.ts';
-import { breadcrumbSchema, faqSchema, localBusinessSchema } from '../../src/lib/schema.ts';
-import { picture, whatsappLink } from './components.ts';
+import {
+  breadcrumbSchema,
+  faqSchema,
+  imageObjectsSchema,
+  localBusinessSchema,
+  serviceSchema,
+  videoSchema,
+  webPageSchema,
+  webSiteSchema,
+} from '../../src/lib/schema.ts';
+import { picture, whatsappLink, type PageImage } from './components.ts';
 import { esc } from './html.ts';
 import { source } from './images.ts';
 
@@ -27,18 +37,34 @@ export interface PageData {
   mobileCtaLabel?: string;
   faq?: FaqItem[];
   breadcrumbs?: Crumb[];
-  schema: object[];
   noindex: boolean;
   headExtras: string[];
   main: string;
   hasVideo: boolean;
+  /** Tipo schema.org da página (WebPage, AboutPage, ContactPage, CollectionPage). */
+  pageType: string;
+  /** Nome e tipo do serviço, nas páginas comerciais (gera o schema Service). */
+  service?: { name: string; type: string; description: string };
+  /** Imagem principal da página. */
+  primaryImage?: PageImage;
+  /** Imagem social gerada no build (caminho público) e seu texto alternativo. */
+  og?: { path: string; alt: string };
+  /** Fotos reais da página, para os ImageObject. */
+  images: PageImage[];
+  parts: string[];
+  scripts: string[];
+  /** Schema extra montado por quem conhece a página (Person, OfferCatalog). */
+  extraSchema: object[];
 }
 
 export interface Assets {
   css: string;
+  /** CSS de cada parte (src/styles/parts/<nome>.css), embutido só nas páginas que a usam. */
+  cssParts: Record<string, string>;
   fontPreload: string;
   mainScript: string;
-  videoScript: string;
+  /** Scripts extras por nome: video, symptoms, map. */
+  scripts: Record<string, string>;
 }
 
 /** Sem domínio, as URLs absolutas usam o endereço local de preview. */
@@ -94,11 +120,16 @@ async function footer(): Promise<string> {
     ? `<br><a href="${esc(siteConfig.googleBusinessUrl)}" target="_blank" rel="noopener">Perfil da Empresa no Google</a>`
     : '';
   const links = mainNav.map((item) => `<li><a href="${item.href}">${esc(item.label)}</a></li>`).join('');
+  const services = categoriesByPriority('foco')
+    .filter((category) => category.id !== 'atendimento')
+    .map((category) => `<li><a href="/servicos/#${category.id}">${esc(category.title)}</a></li>`)
+    .join('');
   return (
     `<footer class="site-footer"><div class="wrap site-footer__grid"><div>${await logo('LCPC Gaming', false)}<p class="site-footer__slogan">${esc(business.slogan)}</p></div>` +
     `<address class="site-footer__nap"><strong>${esc(business.name)}</strong><br>${esc(fullAddress)}<br>WhatsApp <a href="tel:${business.phone.e164}">${esc(business.phone.display)}</a><br>` +
     `<a href="mailto:${business.email}">${esc(business.email)}</a><br><a href="${esc(directionsUrl)}" target="_blank" rel="noopener">Como chegar</a>${profile}</address>` +
-    `<nav aria-label="Rodapé"><ul class="site-footer__nav">${links}</ul></nav></div>` +
+    `<nav aria-label="Rodapé"><ul class="site-footer__nav">${links}</ul></nav>` +
+    `<nav aria-label="Serviços"><ul class="site-footer__nav">${services}</ul></nav></div>` +
     `<div class="wrap site-footer__legal"><p>Horários e condições de retirada e entrega: consulte pelo WhatsApp.</p><p>© ${new Date().getFullYear()} ${esc(business.name)}. São Paulo - SP.</p></div></footer>`
   );
 }
@@ -106,15 +137,30 @@ async function footer(): Promise<string> {
 export async function renderPage(page: PageData, assets: Assets): Promise<string> {
   const canonical = siteConfig.siteUrl ? `${siteConfig.siteUrl}${page.path}` : null;
   const robots = siteConfig.indexable && !page.noindex ? 'index, follow' : 'noindex, nofollow';
-  const ogImage = new URL(socialImage.src, origin).href;
   const pageUrl = canonical ?? new URL(page.path, origin).href;
+  const ogImage = new URL(page.og?.path ?? socialImage.src, origin).href;
+  const ogAlt = page.og?.alt ?? socialImage.alt;
 
   const structuredData = [
     localBusinessSchema(origin),
-    ...(page.breadcrumbs ? [breadcrumbSchema(page.breadcrumbs, origin)] : []),
+    webSiteSchema(origin),
+    webPageSchema(origin, {
+      path: page.path,
+      type: page.pageType,
+      name: page.title,
+      description: page.description,
+      image: page.primaryImage,
+      breadcrumb: Boolean(page.breadcrumbs),
+    }),
+    ...(page.breadcrumbs ? [breadcrumbSchema(page.breadcrumbs, origin, page.path)] : []),
     ...(page.faq?.length ? [faqSchema(page.faq)] : []),
-    ...page.schema,
+    ...(page.service ? [serviceSchema(origin, { path: page.path, ...page.service })] : []),
+    ...(page.hasVideo ? [videoSchema(origin, video)] : []),
+    ...(page.images.length ? [imageObjectsSchema(origin, page.images)] : []),
+    ...page.extraSchema,
   ];
+
+  const css = [assets.css, ...page.parts.map((name) => assets.cssParts[name] ?? '')].join('');
 
   const head = [
     '<meta charset="utf-8">',
@@ -125,7 +171,9 @@ export async function renderPage(page: PageData, assets: Assets): Promise<string
     canonical ? `<link rel="canonical" href="${esc(canonical)}">` : '',
     '<meta name="theme-color" content="#1d2024">',
     '<link rel="icon" type="image/png" sizes="48x48" href="/favicon.png">',
+    '<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">',
     '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
+    '<link rel="manifest" href="/site.webmanifest">',
     `<link rel="preload" href="${assets.fontPreload}" as="font" type="font/woff2" crossorigin>`,
     '<meta property="og:type" content="website">',
     '<meta property="og:locale" content="pt_BR">',
@@ -134,20 +182,25 @@ export async function renderPage(page: PageData, assets: Assets): Promise<string
     `<meta property="og:description" content="${page.description}">`,
     `<meta property="og:url" content="${esc(pageUrl)}">`,
     `<meta property="og:image" content="${esc(ogImage)}">`,
+    '<meta property="og:image:type" content="image/jpeg">',
     `<meta property="og:image:width" content="${socialImage.width}">`,
     `<meta property="og:image:height" content="${socialImage.height}">`,
-    `<meta property="og:image:alt" content="${esc(socialImage.alt)}">`,
+    `<meta property="og:image:alt" content="${esc(ogAlt)}">`,
     '<meta name="twitter:card" content="summary_large_image">',
     `<meta name="twitter:title" content="${page.title}">`,
     `<meta name="twitter:description" content="${page.description}">`,
     `<meta name="twitter:image" content="${esc(ogImage)}">`,
+    `<meta name="twitter:image:alt" content="${esc(ogAlt)}">`,
     ...page.headExtras,
-    `<style>${assets.css}</style>`,
+    `<style>${css}</style>`,
     ...structuredData.map((data) => `<script type="application/ld+json">${jsonForScript(data)}</script>`),
     analytics(),
   ].join('');
 
-  const scripts = [assets.mainScript, page.hasVideo ? assets.videoScript : ''].filter(Boolean).map((js) => `<script>${js}</script>`).join('');
+  const scripts = [assets.mainScript, ...page.scripts.map((name) => assets.scripts[name] ?? '')]
+    .filter(Boolean)
+    .map((js) => `<script>${js}</script>`)
+    .join('');
 
   return (
     `<!doctype html><html lang="pt-BR"><head>${head}</head><body>` +

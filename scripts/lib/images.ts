@@ -93,3 +93,21 @@ export async function srcset(image: Source, widths: number[], format: Format): P
     largest: urls[urls.length - 1]!,
   };
 }
+
+const placeholders = new Map<string, Promise<string>>();
+
+/** Miniatura de ~24 px em WebP, inline como data URI: aparece borrada até a foto real decodificar. */
+export function lqip(image: Source): Promise<string> {
+  let found = placeholders.get(image.digest);
+  if (!found) {
+    found = sharp(readFileSync(join(MEDIA_DIR, image.file)))
+      .rotate()
+      .resize({ width: 24 })
+      .modulate({ saturation: 1.15 })
+      .webp({ quality: 38, effort: 6 })
+      .toBuffer()
+      .then((data) => `data:image/webp;base64,${data.toString('base64')}`);
+    placeholders.set(image.digest, found);
+  }
+  return found;
+}

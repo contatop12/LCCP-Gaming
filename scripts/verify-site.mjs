@@ -8,6 +8,7 @@
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import sharp from 'sharp';
 import { catalogItems, categories } from '../src/data/catalog.ts';
 
 const DIST = 'dist';
@@ -64,6 +65,9 @@ for (const page of pages) {
 check(!existsSync(join(DIST, '_astro')), 'dist/_astro não deveria existir');
 
 const commercial = pages.filter((page) => page.route !== '/404');
+const ogImages = new Map();
+const wordCounts = new Map();
+const cssSizes = new Map();
 
 const attr = (tag, name) => tag.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1];
 const tags = (html, name) => html.match(new RegExp(`<${name}\\b[^>]*>`, 'g')) ?? [];
@@ -161,7 +165,9 @@ for (const page of commercial) {
   for (const message of expectedMessages[page.route] ?? []) {
     check(messages.includes(message), `${page.route}: mensagem esperada ausente: ${message}`);
   }
-  check(!/\.preventDefault\(/.test(page.html), `${page.route}: evento pode atrasar o WhatsApp`);
+  // O script do evento (o que contém whatsapp_click) nunca chama preventDefault. Outros scripts, como as abas de sintomas, podem usar nas teclas de seta.
+  const analyticsScript = [...page.html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).find((code) => code.includes('whatsapp_click')) ?? '';
+  check(analyticsScript !== '' && !/preventDefault/.test(analyticsScript), `${page.route}: evento pode atrasar o WhatsApp`);
   check(/whatsapp_click/.test(page.html), `${page.route}: evento whatsapp_click ausente`);
   check(/page_path/.test(page.html) && /service_category/.test(page.html) && /cta_location/.test(page.html), `${page.route}: parâmetros do evento ausentes`);
 }
@@ -204,8 +210,8 @@ for (const page of commercial) {
   check(Boolean(description) && !descriptions.has(description), `${page.route}: description ausente ou repetida`);
   titles.set(title, page.route);
   descriptions.set(description, page.route);
-  if (title.length > 65) warnings.push(`${page.route}: title com ${title.length} caracteres`);
-  if (description.length > 165 || description.length < 120) warnings.push(`${page.route}: description com ${description.length} caracteres`);
+  if (title.length < 50 || title.length > 60) warnings.push(`${page.route}: title com ${title.length} caracteres (alvo: 50 a 60)`);
+  if (description.length < 140 || description.length > 160) warnings.push(`${page.route}: description com ${description.length} caracteres (alvo: 140 a 160)`);
 
   const h1s = [...page.html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/g)].map((match) => decode(match[1].replace(/<[^>]+>/g, '').trim()));
   check(h1s.length === 1, `${page.route}: ${h1s.length} H1`);
@@ -244,6 +250,88 @@ for (const page of commercial) {
       check(text.includes(question.name), `${page.route}: pergunta do JSON-LD fora da página: ${question.name}`);
       check(text.includes(question.acceptedAnswer.text), `${page.route}: resposta do JSON-LD fora da página: ${question.name}`);
     }
+  }
+
+  /* JSON-LD ampliado: WebSite, WebPage, Service, VideoObject, ImageObject, Person, hasMap, contactPoint */
+  const byType = (type) => data.filter((entry) => entry['@type'] === type);
+  const pageNode = data.find((entry) => ['WebPage', 'AboutPage', 'ContactPage', 'CollectionPage'].includes(entry['@type']));
+  check(byType('WebSite').length === 1, `${page.route}: sem WebSite`);
+  check(Boolean(pageNode), `${page.route}: sem WebPage no JSON-LD`);
+  check(Boolean(pageNode?.primaryImageOfPage?.url && pageNode.primaryImageOfPage.width && pageNode.primaryImageOfPage.height), `${page.route}: WebPage sem primaryImageOfPage`);
+  check(business?.hasMap?.startsWith('https://www.google.com/maps?q='), `${page.route}: LocalBusiness sem hasMap`);
+  check(business?.contactPoint?.['@type'] === 'ContactPoint' && business.contactPoint.telephone === '+5511944700732', `${page.route}: LocalBusiness sem contactPoint de WhatsApp`);
+  const graphImages = data.flatMap((entry) => (entry['@graph'] ?? []).filter((node) => node['@type'] === 'ImageObject'));
+  check(graphImages.length >= 1 && graphImages.every((img) => img.contentUrl && img.width && img.height && img.caption), `${page.route}: ImageObject incompleto`);
+  const serviceRoutes = ['/', '/pc-gamer/', '/conserto-de-notebook/', '/conserto-de-computador/'];
+  const service = byType('Service')[0];
+  if (serviceRoutes.includes(page.route)) {
+    check(Boolean(service?.serviceType) && service.provider?.['@id']?.endsWith('/#empresa'), `${page.route}: Service sem serviceType ou provider`);
+    check(service?.areaServed?.['@type'] === 'City' && service.areaServed.name === 'São Paulo', `${page.route}: areaServed deve ser só a cidade de São Paulo`);
+  }
+  if (page.route === '/pc-gamer/') {
+    const videoData = byType('VideoObject')[0];
+    check(videoData?.duration === 'PT26S' && videoData.uploadDate === '2026-11-03', `${page.route}: VideoObject com duração ou data errada`);
+    check(Boolean(videoData?.name && videoData.description && videoData.thumbnailUrl && videoData.contentUrl), `${page.route}: VideoObject incompleto`);
+  } else {
+    check(byType('VideoObject').length === 0, `${page.route}: VideoObject fora de /pc-gamer/`);
+  }
+  if (page.route === '/sobre/') {
+    const person = byType('Person')[0];
+    check(person?.name === 'Luis Carlos' && Boolean(person.image?.contentUrl), `${page.route}: Person sem nome ou imagem`);
+  }
+  const jsonText = JSON.stringify(data);
+  check(!/"geo"|GeoCoordinates|latitude|longitude/.test(jsonText), `${page.route}: coordenadas no JSON-LD`);
+  if (production) check(!jsonText.includes('localhost'), `${page.route}: URL de preview no JSON-LD de produção`);
+
+  /* Imagem social própria, 1200x630 e abaixo de 300 KB */
+  const ogUrl = attr(metaContent(page.html, 'og:image') ?? '', 'content') ?? '';
+  const ogPath = ogUrl.replace(/^https?:\/\/[^/]+/, '');
+  const ogFile = join(DIST, ogPath);
+  check(existsSync(ogFile), `${page.route}: og:image inexistente (${ogPath})`);
+  if (existsSync(ogFile)) {
+    const size = statSync(ogFile).size;
+    const meta = await sharp(ogFile).metadata();
+    check(meta.width === 1200 && meta.height === 630, `${page.route}: og:image com ${meta.width}x${meta.height}`);
+    check(size < 300 * 1024, `${page.route}: og:image com ${Math.round(size / 1024)} KB`);
+    check(ogPath.startsWith('/og/'), `${page.route}: og:image sem imagem própria da página`);
+    check(!ogImages.has(ogPath), `${page.route}: og:image repetida de ${ogImages.get(ogPath)}`);
+    ogImages.set(ogPath, page.route);
+  }
+
+  /* Texto útil e resposta direta */
+  const mainText = visibleText((page.html.match(/<main[\s\S]*<\/main>/) ?? [''])[0]);
+  const words = mainText.split(' ').filter(Boolean).length;
+  wordCounts.set(page.route, words);
+  if ([...serviceRoutes, '/servicos/'].includes(page.route)) {
+    check(words >= 400, `${page.route}: só ${words} palavras de texto útil (mínimo 400)`);
+    const answer = page.html.match(/<div class="answer[^"]*">\s*<h2[^>]*>[\s\S]*?<\/h2>\s*<p>([\s\S]*?)<\/p>/)?.[1];
+    const answerWords = answer ? decode(answer.replace(/<[^>]+>/g, ' ')).split(/\s+/).filter(Boolean).length : 0;
+    check(answerWords >= 50 && answerWords <= 100, `${page.route}: resposta direta com ${answerWords} palavras (esperado 50 a 100)`);
+  }
+  if (['/pc-gamer/', '/conserto-de-notebook/', '/conserto-de-computador/', '/servicos/', '/contato/'].includes(page.route)) {
+    check((faq?.mainEntity?.length ?? 0) >= 3, `${page.route}: menos de 3 perguntas frequentes`);
+  }
+
+  /* Seletor de sintomas: todas as respostas no HTML, cada uma com WhatsApp e links internos */
+  const tabIds = [...page.html.matchAll(/data-tab="([^"]+)"/g)].map((m) => m[1]);
+  if (tabIds.length) check(tabIds.length >= 4, `${page.route}: seletor de sintomas com poucas opções`);
+  for (const id of tabIds) {
+    const panel = page.html.match(new RegExp(`<article id="${id}" class="sx__panel"[\\s\\S]*?</article>`))?.[0] ?? '';
+    check(panel.includes('wa.me/') && panel.includes('O que é avaliado') && panel.includes('O que enviar') && /href="\/[^"]*"/.test(panel), `${page.route}: painel de sintoma incompleto (${id})`);
+  }
+  check(!/<iframe/.test(page.html), `${page.route}: iframe no HTML (o mapa só pode carregar depois do clique)`);
+  check(!/<(?:img|script|link)[^>]+(?:google\.com\/maps|maps\.googleapis|gstatic)/.test(page.html), `${page.route}: requisição a terceiros antes do clique`);
+
+  /* Imagens: sizes junto de srcset, nomes descritivos em português */
+  for (const tag of tags(page.html, 'img')) {
+    if (attr(tag, 'srcset')) check(Boolean(attr(tag, 'sizes')), `${page.route}: imagem com srcset sem sizes: ${attr(tag, 'src')}`);
+  }
+  const css = page.html.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? '';
+  check(css.length < 80 * 1024, `${page.route}: CSS embutido com ${Math.round(css.length / 1024)} KB`);
+  cssSizes.set(page.route, css.length);
+  for (const block of css.matchAll(/@keyframes[^{]+\{((?:[^{}]|\{[^{}]*\})*)\}/g)) {
+    const props = [...block[1].matchAll(/([a-z-]+)\s*:/g)].map((m) => m[1]).filter((p) => !['from', 'to'].includes(p));
+    check(props.every((p) => ['transform', 'opacity'].includes(p)), `${page.route}: @keyframes anima ${props.join(', ')} (só transform e opacity)`);
   }
 
   /* Indexação */
@@ -285,6 +373,38 @@ if (production) {
   check(!/<loc>/.test(sitemap), 'Sitemap de preview não pode listar URLs');
 }
 
+/* 8. Rastreamento, GEO, ícones e regra de Apple nos arquivos */
+const crawlers = ['Googlebot', 'Bingbot', 'GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'PerplexityBot', 'Google-Extended'];
+for (const agent of crawlers) check(robotsTxt.includes(`User-agent: ${agent}`), `robots.txt sem regra explícita para ${agent}`);
+check(!/^\s*Disallow:\s*\/\s*$/m.test(robotsTxt), 'robots.txt bloqueia o site inteiro (o noindex precisa ser lido)');
+const llms = readFileSync(join(DIST, 'llms.txt'), 'utf8');
+check(llms.includes('Rua Maria Pais de Barros, 329') && llms.includes('5511944700732'), 'llms.txt sem endereço ou WhatsApp');
+check(llms.includes('## Serviços publicados') && categories.filter((c) => c.id !== 'atendimento').every((c) => llms.includes(c.title)), 'llms.txt sem o resumo dos serviços publicados');
+for (const item of catalogItems.filter((entry) => entry.status !== 'publicado' && entry.status !== 'publicado-adaptado')) {
+  check(!llms.includes(item.source), `llms.txt cita item ${item.status}: ${item.source}`);
+}
+for (const [pattern, name] of forbidden) check(!decode(llms).match(pattern), `llms.txt: termo proibido (${name})`);
+const manifest = JSON.parse(readFileSync(join(DIST, 'site.webmanifest'), 'utf8'));
+check(Boolean(manifest.name) && manifest.short_name === 'LCPC Gaming' && manifest.lang === 'pt-BR' && manifest.start_url === '/', 'site.webmanifest incompleto');
+for (const icon of manifest.icons ?? []) check(existsSync(join(DIST, icon.src)), `ícone do manifesto ausente: ${icon.src}`);
+check((manifest.icons ?? []).some((icon) => icon.sizes === '512x512') && (manifest.icons ?? []).some((icon) => icon.sizes === '192x192'), 'manifesto sem ícones 192 e 512');
+for (const page of commercial) check(page.html.includes('rel="manifest"') && page.html.includes('icon-192.png'), `${page.route}: sem link para o manifesto e o ícone 192`);
+check(sitemap.includes('xmlns:image='), 'sitemap sem o namespace de imagens');
+if (production) {
+  for (const block of sitemap.split('<url>').slice(1)) {
+    check((block.match(/<image:loc>/g) ?? []).length >= 1, `sitemap sem imagens em ${block.match(/<loc>([^<]*)<\/loc>/)?.[1]}`);
+  }
+}
+const imageFiles = existsSync(join(DIST, 'assets/img')) ? readdirSync(join(DIST, 'assets/img')) : [];
+for (const file of imageFiles) {
+  check(!/macbook|cidade-ademar|zona-sul-sp/.test(file), `imagem de equipamento Apple no build: ${file}`);
+  if (!file.startsWith('logo-')) check(/^[a-z0-9]+(-[a-z0-9]+){3,}-\d+\.[0-9a-f]{8}\.(avif|webp|jpg)$/.test(file), `nome de imagem pouco descritivo: ${file}`);
+}
+const prepareMedia = readFileSync('scripts/prepare-media.mjs', 'utf8');
+check(!/crop\([^)]*nao-publicar-macbook/.test(prepareMedia), 'prepare-media.mjs recorta foto de nao-publicar-macbook');
+for (const file of readdirSync('src/assets/media')) check(!/macbook|cidade-ademar|zona-sul-sp/.test(file), `foto com MacBook em src/assets/media: ${file}`);
+
+for (const [route, count] of wordCounts) console.log(`  ${route.padEnd(26)} ${count} palavras de texto, CSS embutido ${Math.round((cssSizes.get(route) ?? 0) / 1024)} KB`);
 for (const warning of warnings) console.warn(`aviso: ${warning}`);
 if (failures.length) {
   console.error(`\n${failures.length} falha(s) em ${checks} verificações:`);

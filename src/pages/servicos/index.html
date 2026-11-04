@@ -2,52 +2,107 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <title>Serviços de assistência técnica em computadores | LCPC Gaming</title>
+  <title>Serviços de assistência técnica de computador | LCPC Gaming</title>
   <meta name="description" content="Catálogo da LCPC Gaming: diagnóstico, conserto de notebooks e desktops, limpeza, montagem, upgrade, formatação e remoção de vírus. Vila Marari, SP.">
   <!-- Ajustes desta página (lidos pelo build e removidos do HTML final). lcpc:schema acrescenta o OfferCatalog ao JSON-LD. -->
   <meta name="lcpc:breadcrumb" content="Serviços">
   <meta name="lcpc:schema" content="offer-catalog">
+  <meta name="lcpc:faq" content="servicos">
+  <meta name="lcpc:type" content="CollectionPage">
+  <meta name="lcpc:image" content="bancada">
+  <meta name="lcpc:og" content="Serviços da LCPC Gaming para computadores e notebooks">
+  <meta name="lcpc:service" content="Assistência técnica de computadores e notebooks">
+  <meta name="lcpc:service-type" content="Assistência técnica, montagem e upgrade de computadores">
+  <meta name="lcpc:service-description" content="Catálogo de diagnóstico, conserto, limpeza, montagem, upgrade, formatação, remoção de vírus e serviços complementares.">
 </head>
 <body>
 <main>
 
-  <section class="page-hero">
-    <div class="wrap">
-      <h1 class="page-hero__wide">Serviços da LCPC Gaming para computadores e notebooks</h1>
-      <p class="lead">
-        O catálogo da LCPC Gaming, na Vila Marari, está em ordem de prioridade: primeiro os serviços principais, depois os complementares. Cada grupo tem um botão de WhatsApp com a mensagem pronta para aquele assunto.
-      </p>
-      <!-- Os grupos, títulos, resumos e itens saem de src/data/catalog.ts: para mudar um serviço, edite lá. -->
-      <nav class="service-index" aria-label="Grupos de serviços">
-        <div>
-          <p class="service-index__label">Serviços principais</p>
+  <section class="phero">
+    <div class="wrap phero__grid">
+      <div class="phero__text">
+        <h1>Serviços da LCPC Gaming para computadores e notebooks</h1>
+        <p class="lead">
+          O catálogo da LCPC Gaming, na Vila Marari, está em ordem de prioridade: primeiro os serviços principais, depois os complementares. Cada grupo tem um botão de WhatsApp com a mensagem pronta para aquele assunto.
+        </p>
+        <!-- Os grupos, títulos, resumos e itens saem de src/data/catalog.ts: para mudar um serviço, edite lá. -->
+        <nav class="service-index" aria-label="Grupos de serviços">
+          <p class="index-label">Serviços principais</p>
           <lcpc-category-links priority="foco" />
-        </div>
-        <div>
-          <p class="service-index__label">Serviços complementares</p>
+          <p class="index-label">Serviços complementares</p>
           <lcpc-category-links priority="complementar" />
-          <p class="service-index__extra"><lcpc-category-link category="digital" /></p>
-        </div>
-      </nav>
+          <p class="index-label">Além da assistência técnica</p>
+          <ul class="index-chips"><li><lcpc-category-link category="digital" /></li></ul>
+        </nav>
+      </div>
+      <div class="phero__media">
+        <lcpc-tile name="bancada" sizes="(min-width: 900px) 46vw, 100vw" class="tile--wide" pos="50% 40%" priority />
+        <lcpc-tile name="gabineteInterior" sizes="(min-width: 900px) 23vw, 50vw" widths="480,668" pos="50% 40%" />
+        <lcpc-tile name="detalheNotebook" sizes="(min-width: 900px) 23vw, 50vw" widths="480,800" pos="50% 40%" />
+      </div>
     </div>
   </section>
 
-  <section class="section section--raised" aria-labelledby="principais">
+  <section class="band" aria-labelledby="resposta">
     <div class="wrap">
-      <h2 id="principais" class="group-title">Serviços principais</h2>
-      <lcpc-services priority="foco" />
+      <div class="answer">
+        <h2 id="resposta">Que serviços a LCPC Gaming oferece?</h2>
+        <p>
+          O catálogo cobre diagnóstico, conserto de notebooks, reparo de desktops e all-in-one, limpeza e manutenção preventiva, montagem e upgrades, formatação e remoção de vírus. Como serviços complementares, há reparo eletrônico de placas, backup e recuperação de dados, configuração de periféricos e avaliação para compra ou revenda. Valores e prazos dependem do defeito e das peças, por isso o orçamento começa por uma mensagem no WhatsApp com o modelo e o sintoma.
+        </p>
+      </div>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="complementares">
+  <section class="band band--raised" aria-labelledby="principais">
     <div class="wrap">
-      <h2 id="complementares" class="group-title">Serviços complementares</h2>
-      <p class="group-intro">Também são feitos na LCPC Gaming, sob avaliação de cada caso.</p>
-      <lcpc-services priority="complementar" />
+      <div class="head">
+        <h2 id="principais">Serviços principais</h2>
+        <p>O foco da LCPC Gaming. Cada bloco traz tudo o que está publicado no catálogo para aquele serviço.</p>
+      </div>
+      <div class="bento">
+        <lcpc-service category="diagnostico" class="c7" />
+        <lcpc-service category="notebooks" class="c5" />
+        <lcpc-service category="desktops" class="c4" />
+        <lcpc-tile name="placaMae" sizes="(min-width: 760px) 25vw, 100vw" class="c3" pos="45% 45%" />
+        <lcpc-service category="limpeza" class="c5" />
+        <lcpc-service category="montagem-upgrade" class="c5" />
+        <lcpc-tile name="gabineteInterior" sizes="(min-width: 760px) 25vw, 100vw" class="c3" pos="50% 40%" />
+        <lcpc-service category="formatacao" class="c4" />
+        <lcpc-service category="virus" class="c4" />
+        <lcpc-service category="atendimento" class="c4" />
+        <lcpc-tile name="bancadaPositivo" sizes="(min-width: 760px) 33vw, 100vw" class="c4" pos="50% 55%" />
+      </div>
+    </div>
+  </section>
+
+  <lcpc-trace variant="3" pulse />
+
+  <section class="band" aria-labelledby="complementares">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="complementares">Serviços complementares</h2>
+        <p>Também são feitos na LCPC Gaming, sob avaliação de cada caso.</p>
+      </div>
+      <div class="bento">
+        <lcpc-service category="placas" class="c5" />
+        <lcpc-service category="dados" class="c7" />
+        <lcpc-service category="perifericos" class="c4" />
+        <lcpc-tile name="bancadaNotebookAberto" sizes="(min-width: 760px) 30vw, 100vw" class="c4" pos="50% 60%" />
+        <lcpc-service category="avaliacao" class="c4" />
+      </div>
     </div>
   </section>
 
   <lcpc-digital-block category="digital" />
+
+  <lcpc-faq set="servicos" title="Dúvidas sobre os serviços" lead="Como escolher o serviço, o que muda entre principais e complementares e como orçar mais de um item." photo="bancadaLuz" photo-pos="50% 40%" />
+
+  <lcpc-cta-band
+    title="Não sabe qual serviço escolher?"
+    text="Descreva o que está acontecendo e o modelo do equipamento. O diagnóstico aponta o caminho."
+    context="diagnostico"
+    label="Pedir diagnóstico no WhatsApp" />
 
 </main>
 </body>
