@@ -9,7 +9,7 @@ export const faq = {
     {
       question: 'Que equipamentos a LCPC Gaming atende?',
       answer:
-        'Computadores de mesa, all-in-one e notebooks, além de PCs gamer desktop para montagem, upgrade e manutenção. Envie a marca e o modelo pelo WhatsApp para confirmar se o seu caso está dentro do atendimento.',
+        'Notebooks, computadores de mesa e all-in-one, além de PCs gamer desktop para montagem, upgrade e manutenção. Envie a marca e o modelo pelo WhatsApp para confirmar se o seu caso está dentro do atendimento.',
     },
     {
       question: 'O que informar para pedir um orçamento?',
@@ -17,9 +17,19 @@ export const faq = {
         'Informe o tipo de equipamento, a marca e o modelo ou, em desktops, a configuração. Depois descreva o sintoma, desde quando ele acontece e se houve queda, contato com líquido ou surto elétrico. Fotos ou um vídeo curto do problema também ajudam.',
     },
     {
-      question: 'Meu computador não liga. Dá para avaliar?',
+      question: 'Meu notebook ou computador não liga. Dá para avaliar?',
       answer:
         'Sim. O diagnóstico cobre equipamentos que não ligam e os que ligam sem dar vídeo, com testes de memória, HD, SSD, fonte, bateria e placa de vídeo. O resultado é um laudo técnico com o orçamento de reparo.',
+    },
+    {
+      question: 'A LCPC Gaming monta PC gamer?',
+      answer:
+        'Sim, em desktops. A montagem, o upgrade e a manutenção partem dos jogos, da resolução, do orçamento e das peças que você já tem, com conferência de compatibilidade. O foco gamer é em desktops.',
+    },
+    {
+      question: 'Onde fica a assistência técnica?',
+      answer:
+        'Na Rua Maria Pais de Barros, 329, Vila Marari, bairro da Zona Sul de São Paulo (CEP 04402-140). O botão Como chegar abre o trajeto no Google Maps.',
     },
     {
       question: 'Vocês atendem em domicílio ou fazem retirada e entrega?',
@@ -66,6 +76,11 @@ export const faq = {
         'Envie a marca, o modelo e o sintoma. O modelo costuma estar em uma etiqueta embaixo do notebook. Conte desde quando o problema acontece e se houve queda, contato com líquido ou surto elétrico. Uma foto da tela ou da parte danificada ajuda.',
     },
     {
+      question: 'Vocês fazem troca de tela de notebook?',
+      answer:
+        'Sim. A troca de tela de notebook cobre tela quebrada ou com linhas, manchas e falhas de imagem, além do cabo flat e do touchscreen, conforme o modelo. Envie a marca, o modelo e uma foto da tela ligada para pedir o orçamento.',
+    },
+    {
       question: 'Vale a pena consertar um notebook antigo?',
       answer:
         'Depende do defeito, do custo das peças e do uso que você pretende fazer do equipamento. Por isso o diagnóstico vem antes da decisão: com o laudo e o orçamento de reparo em mãos, você compara o custo do conserto com o valor de continuar usando o notebook.',
@@ -101,6 +116,11 @@ export const faq = {
       question: 'O que informar para pedir orçamento de conserto de computador?',
       answer:
         'Conte o que acontece ao apertar o botão de ligar, se aparece alguma mensagem na tela e desde quando o problema começou. Se souber a configuração, informe a placa-mãe, o processador, a memória, a placa de vídeo e a fonte. Em computadores de marca, envie o modelo.',
+    },
+    {
+      question: 'Que tipo de assistência técnica de informática vocês fazem?',
+      answer:
+        'Diagnóstico, troca de componentes, limpeza e manutenção, formatação e remoção de vírus em computadores de mesa e all-in-one. Se o seu caso for diferente, envie a marca e o modelo pelo WhatsApp para confirmar o atendimento.',
     },
     {
       question: 'Vocês consertam computador all-in-one?',

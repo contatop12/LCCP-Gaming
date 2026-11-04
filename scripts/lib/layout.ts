@@ -7,10 +7,12 @@ import { categoriesByPriority } from '../../src/data/catalog.ts';
 import type { FaqItem } from '../../src/data/faq.ts';
 import { logoImage, socialImage, video } from '../../src/data/media.ts';
 import { mainNav, siteConfig } from '../../src/data/site.ts';
+import { steps } from '../../src/data/steps.ts';
 import type { WhatsappContext } from '../../src/data/whatsapp.ts';
 import {
   breadcrumbSchema,
   faqSchema,
+  howToSchema,
   imageObjectsSchema,
   localBusinessSchema,
   serviceSchema,
@@ -19,8 +21,9 @@ import {
   webSiteSchema,
 } from '../../src/lib/schema.ts';
 import { picture, whatsappLink, type PageImage } from './components.ts';
-import { esc } from './html.ts';
+import { esc, parseAttrs } from './html.ts';
 import { source } from './images.ts';
+import { purgeCss, scriptClasses } from './purge-css.ts';
 
 export interface Crumb {
   label: string;
@@ -41,6 +44,8 @@ export interface PageData {
   headExtras: string[];
   main: string;
   hasVideo: boolean;
+  /** Conjunto de passos mostrado na página (vira HowTo no JSON-LD). */
+  howto?: string;
   /** Tipo schema.org da página (WebPage, AboutPage, ContactPage, CollectionPage). */
   pageType: string;
   /** Nome e tipo do serviço, nas páginas comerciais (gera o schema Service). */
@@ -76,16 +81,36 @@ const jsonForScript = (data: object) => JSON.stringify(data).replaceAll('<', '\\
 /** Valor de ambiente como literal JS seguro dentro de <script>. */
 const lit = (value: string) => JSON.stringify(value).replaceAll('<', '\\u003c');
 
+/**
+ * GTM ou GA4, só depois de a página ser de fato aberta: uma página pré-renderizada por Speculation Rules
+ * (document.prerendering) espera o prerenderingchange, para não contar visita que não aconteceu.
+ */
 function analytics(): string {
   const { gtmId, ga4Id } = siteConfig;
+  const whenActive = (body: string) =>
+    `<script>(function(){function go(){${body}}if(document.prerendering){document.addEventListener('prerenderingchange',go,{once:true});}else{go();}})();</script>`;
   if (gtmId) {
-    return `<script>window.dataLayer=window.dataLayer||[];window.dataLayer.push({'gtm.start':Date.now(),event:'gtm.js'});var gtm=document.createElement('script');gtm.async=true;gtm.src='https://www.googletagmanager.com/gtm.js?id='+encodeURIComponent(${lit(gtmId)});document.head.appendChild(gtm);</script>`;
+    return whenActive(
+      `window.dataLayer=window.dataLayer||[];window.dataLayer.push({'gtm.start':Date.now(),event:'gtm.js'});var gtm=document.createElement('script');gtm.async=true;gtm.src='https://www.googletagmanager.com/gtm.js?id='+encodeURIComponent(${lit(gtmId)});document.head.appendChild(gtm);`,
+    );
   }
   if (ga4Id) {
-    return `<script>window.dataLayer=window.dataLayer||[];window.gtag=function(){window.dataLayer.push(arguments);};window.gtag('js',new Date());window.gtag('config',${lit(ga4Id)},{transport_type:'beacon'});var ga=document.createElement('script');ga.async=true;ga.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(${lit(ga4Id)});document.head.appendChild(ga);</script>`;
+    return whenActive(
+      `window.dataLayer=window.dataLayer||[];window.gtag=function(){window.dataLayer.push(arguments);};window.gtag('js',new Date());window.gtag('config',${lit(ga4Id)},{transport_type:'beacon'});var ga=document.createElement('script');ga.async=true;ga.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(${lit(ga4Id)});document.head.appendChild(ga);`,
+    );
   }
   return '';
 }
+
+/** Navegação instantânea: o navegador pré-renderiza a página de um link interno quando o visitante passa o mouse ou toca nele. */
+const SPECULATION_RULES = JSON.stringify({
+  prerender: [
+    {
+      where: { and: [{ href_matches: '/*' }, { not: { href_matches: '/404/' } }, { not: { selector_matches: '[target=_blank]' } }] },
+      eagerness: 'moderate',
+    },
+  ],
+});
 
 async function logo(alt: string, eager: boolean): Promise<string> {
   return picture(await source(logoImage.file), alt, [160, 320], '160px', { class: 'logo', eager });
@@ -134,7 +159,13 @@ async function footer(): Promise<string> {
   );
 }
 
-export async function renderPage(page: PageData, assets: Assets): Promise<string> {
+export interface RenderedPage {
+  html: string;
+  /** Valor do cabeçalho Link (preload) da página, para o Worker enviar antes do HTML (Early Hints). */
+  link: string;
+}
+
+export async function renderPage(page: PageData, assets: Assets): Promise<RenderedPage> {
   const canonical = siteConfig.siteUrl ? `${siteConfig.siteUrl}${page.path}` : null;
   const robots = siteConfig.indexable && !page.noindex ? 'index, follow' : 'noindex, nofollow';
   const pageUrl = canonical ?? new URL(page.path, origin).href;
@@ -151,16 +182,44 @@ export async function renderPage(page: PageData, assets: Assets): Promise<string
       description: page.description,
       image: page.primaryImage,
       breadcrumb: Boolean(page.breadcrumbs),
+      speakable: page.main.includes('class="answer') ? ['h1', '.answer p'] : ['h1'],
     }),
     ...(page.breadcrumbs ? [breadcrumbSchema(page.breadcrumbs, origin, page.path)] : []),
     ...(page.faq?.length ? [faqSchema(page.faq)] : []),
     ...(page.service ? [serviceSchema(origin, { path: page.path, ...page.service })] : []),
     ...(page.hasVideo ? [videoSchema(origin, video)] : []),
+    ...(page.howto ? [howToSchema(origin, { path: page.path, name: 'Como funciona o atendimento da LCPC Gaming', steps: steps[page.howto as keyof typeof steps] })] : []),
     ...(page.images.length ? [imageObjectsSchema(origin, page.images)] : []),
     ...page.extraSchema,
   ];
 
-  const css = [assets.css, ...page.parts.map((name) => assets.cssParts[name] ?? '')].join('');
+
+  const scriptList = [assets.mainScript, ...page.scripts.map((name) => assets.scripts[name] ?? '')].filter(Boolean);
+  const body =
+    `<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>${await header(page)}` +
+    `${page.breadcrumbs ? breadcrumbs(page.breadcrumbs) : ''}<main id="conteudo">${page.main}</main>${await footer()}` +
+    `<div class="mobile-cta">${whatsappLink({ context: page.context, location: 'barra_celular', label: page.mobileCtaLabel, class: 'btn--block' })}</div>` +
+    scriptList.map((js) => `<script>${js}</script>`).join('');
+
+  // Só entra no HTML o CSS que a página usa (classes do HTML final e as que o JavaScript acrescenta).
+  const css = purgeCss([assets.css, ...page.parts.map((name) => assets.cssParts[name] ?? '')].join(''), body, scriptClasses(scriptList));
+
+  // Mesmo que o <link rel="preload"> do <head>, mas como cabeçalho HTTP Link: a Cloudflare o transforma em Early Hints.
+  const preloads = [
+    `<${assets.fontPreload}>; rel=preload; as=font; type="font/woff2"; crossorigin`,
+    ...page.headExtras
+      .filter((tag) => tag.includes('rel="preload"') && tag.includes('as="image"'))
+      .map((tag) => {
+        const attrs = parseAttrs(tag.replace(/^<link/, '').replace(/>$/, ''));
+        const first = attrs.get('imagesrcset')?.split(',')[0]?.trim().split(' ')[0];
+        const params = ['imagesrcset', 'imagesizes', 'media', 'type']
+          .filter((name) => attrs.has(name))
+          .map((name) => `${name}="${attrs.get(name)!.replaceAll('"', '')}"`);
+        return first ? `<${first}>; rel=preload; as=image; fetchpriority=high; ${params.join('; ')}` : '';
+      }),
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   const head = [
     '<meta charset="utf-8">',
@@ -175,6 +234,7 @@ export async function renderPage(page: PageData, assets: Assets): Promise<string
     '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
     '<link rel="manifest" href="/site.webmanifest">',
     `<link rel="preload" href="${assets.fontPreload}" as="font" type="font/woff2" crossorigin>`,
+    `<script type="speculationrules">${SPECULATION_RULES}</script>`,
     '<meta property="og:type" content="website">',
     '<meta property="og:locale" content="pt_BR">',
     '<meta property="og:site_name" content="LCPC Gaming">',
@@ -197,16 +257,8 @@ export async function renderPage(page: PageData, assets: Assets): Promise<string
     analytics(),
   ].join('');
 
-  const scripts = [assets.mainScript, ...page.scripts.map((name) => assets.scripts[name] ?? '')]
-    .filter(Boolean)
-    .map((js) => `<script>${js}</script>`)
-    .join('');
-
-  return (
-    `<!doctype html><html lang="pt-BR"><head>${head}</head><body>` +
-    `<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>${await header(page)}` +
-    `${page.breadcrumbs ? breadcrumbs(page.breadcrumbs) : ''}<main id="conteudo">${page.main}</main>${await footer()}` +
-    `<div class="mobile-cta">${whatsappLink({ context: page.context, location: 'barra_celular', label: page.mobileCtaLabel, class: 'btn--block' })}</div>` +
-    `${scripts}</body></html>`
-  );
+  return {
+    html: `<!doctype html><html lang="pt-BR"><head>${head}</head><body>${body}</body></html>`,
+    link: preloads,
+  };
 }

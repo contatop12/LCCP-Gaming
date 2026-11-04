@@ -12,13 +12,13 @@ import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { build as bundle, transform } from 'esbuild';
 import { faq } from '../src/data/faq.ts';
 import { images } from '../src/data/media.ts';
-import { siteConfig } from '../src/data/site.ts';
+import { mainNav, siteConfig } from '../src/data/site.ts';
 import { offerCatalogSchema, personSchema } from '../src/lib/schema.ts';
 import { describeImage, expandTags, requireContext, type PageContext } from './lib/components.ts';
 import { BuildError, fail, minifyHtml, parseAttrs } from './lib/html.ts';
 import { origin, renderPage, type Assets, type PageData } from './lib/layout.ts';
 import { writeOgImage } from './lib/og.ts';
-import { llmsTxt, robotsTxt, sitemapXml, webManifest } from './lib/site-files.ts';
+import { llmsFullTxt, llmsTxt, robotsTxt, securityTxt, sitemapXml, webManifest, type PageSummary } from './lib/site-files.ts';
 
 const started = performance.now();
 const DIST = 'dist';
@@ -51,7 +51,7 @@ async function buildCss(): Promise<{ css: string; parts: Record<string, string> 
     return `url(${publishFont(resolve(dirname(fontsPath), file))})`;
   });
   const css = await minifyCss(`${fonts}\n${readFileSync('src/styles/global.css', 'utf8')}`);
-  // Cada parte (xray, symptoms, ticker, map) só vai para as páginas que usam o componente.
+  // Cada parte (xray, symptoms, map) só vai para as páginas que usam o componente.
   const parts: Record<string, string> = {};
   const dir = 'src/styles/parts';
   for (const name of existsSync(dir) ? readdirSync(dir) : []) {
@@ -110,6 +110,11 @@ const PAGE_TYPES = new Set(['WebPage', 'AboutPage', 'ContactPage', 'CollectionPa
 
 /** Caminhos públicos das fotos de cada página, para o sitemap de imagens. */
 const pageImages = new Map<string, string[]>();
+/** Páginas com o vídeo (entrada de vídeo no sitemap) e resumo de cada página (llms.txt). */
+const videoPaths = new Set<string>();
+const summaries: PageSummary[] = [];
+/** Cabeçalho Link (preload) de cada página, lido pelo Worker. */
+const links: Record<string, string> = {};
 
 async function buildPage(file: string, assets: Assets): Promise<{ path: string; output: string }> {
   const rel = relative(PAGES, file).split(sep).join('/');
@@ -200,6 +205,7 @@ async function buildPage(file: string, assets: Assets): Promise<{ path: string; 
     headExtras: page.headExtras,
     main: expanded,
     hasVideo: page.hasVideo,
+    howto: page.howto,
     pageType,
     service: serviceName ? { name: serviceName, type: serviceType!, description: serviceDescription! } : undefined,
     primaryImage: primary,
@@ -211,7 +217,19 @@ async function buildPage(file: string, assets: Assets): Promise<{ path: string; 
   };
   pageImages.set(path, data.images.map((image) => image.path));
 
-  const output = minifyHtml(await renderPage(data, assets));
+  const page2 = await renderPage(data, assets);
+  const output = minifyHtml(page2.html);
+  links[path] = page2.link;
+  if (page.hasVideo) videoPaths.add(path);
+  const plain = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  summaries.push({
+    path,
+    title: plain(title),
+    h1: plain(expanded.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? title),
+    description: plain(description),
+    answer: plain(expanded.match(/<div class="answer[^"]*">\s*<h2[^>]*>[\s\S]*?<\/h2>\s*<p>([\s\S]*?)<\/p>/)?.[1] ?? '') || undefined,
+    faq: (faqSet as PageSummary['faq']) || undefined,
+  });
   // Garantias finais: nada de placeholder nem de caminho do gerador antigo no que vai ao ar.
   const leftover = output.match(/<\/?lcpc-[a-z-]*/)?.[0];
   if (leftover) fail(where, `tag ${leftover}> não foi expandida`);
@@ -237,7 +255,7 @@ try {
   const assets: Assets = {
     css,
     cssParts: parts,
-    fontPreload: publishFont(resolve('src/assets/fonts/saira-condensed-latin-700-normal.woff2')),
+    fontPreload: publishFont(resolve('src/assets/fonts/saira-condensed-pt-700.woff2')),
     mainScript,
     scripts: { video, symptoms, map },
   };
@@ -253,9 +271,16 @@ try {
     built.push(path);
   }
 
+  const order = ['/', ...mainNav.map((item) => item.href)];
+  summaries.sort((a, b) => (order.indexOf(a.path) + 1 || 99) - (order.indexOf(b.path) + 1 || 99));
   writeFileSync(join(DIST, 'robots.txt'), robotsTxt());
-  writeFileSync(join(DIST, 'sitemap.xml'), sitemapXml(pageImages));
-  writeFileSync(join(DIST, 'llms.txt'), llmsTxt());
+  writeFileSync(join(DIST, 'sitemap.xml'), sitemapXml(pageImages, videoPaths));
+  writeFileSync(join(DIST, 'llms.txt'), llmsTxt(summaries));
+  writeFileSync(join(DIST, 'llms-full.txt'), llmsFullTxt(summaries));
+  mkdirSync(join(DIST, '.well-known'), { recursive: true });
+  writeFileSync(join(DIST, '.well-known/security.txt'), securityTxt());
+  // Lido pelo Worker (src/worker/index.ts) para enviar o cabeçalho Link de cada página; o Worker não o serve ao público.
+  writeFileSync(join(DIST, '_links.json'), JSON.stringify(links));
   writeFileSync(join(DIST, 'site.webmanifest'), webManifest());
 
   const seconds = ((performance.now() - started) / 1000).toFixed(1);

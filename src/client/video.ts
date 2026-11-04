@@ -1,18 +1,35 @@
-/** Sem JavaScript, os controles nativos do vídeo continuam disponíveis e nada é baixado antes do play. */
+/**
+ * Vídeo sob demanda. A página só traz uma capa leve (imagem AVIF/WebP, carregada quando chega perto da tela).
+ * O <video> é criado depois do clique, então nem o arquivo nem a capa em JPEG são baixados antes disso.
+ * Sem JavaScript, o <noscript> da página mostra o player nativo com controles.
+ */
 export function enableVideoPlayOverlay(): void {
   document.querySelectorAll<HTMLElement>('[data-video]').forEach((root) => {
-    const player = root.querySelector('video');
-    const play = root.querySelector<HTMLButtonElement>('[data-video-play]');
-    if (!player || !play) return;
+    const facade = root.querySelector<HTMLButtonElement>('[data-video-open]');
+    const sources = (root.dataset.sources ?? '').split(';').filter(Boolean);
+    if (!facade || !sources.length) return;
 
-    play.hidden = false;
-    play.addEventListener('click', () => {
-      play.hidden = true;
-      void player.play();
+    facade.hidden = false;
+    facade.addEventListener('click', () => {
+      const player = document.createElement('video');
+      player.controls = true;
+      player.playsInline = true;
+      player.preload = 'auto';
+      player.width = Number(root.dataset.width) || 464;
+      player.height = Number(root.dataset.height) || 832;
+      player.setAttribute('aria-label', root.dataset.title ?? 'Vídeo');
+      for (const entry of sources) {
+        const [src, type] = entry.split('|');
+        const source = document.createElement('source');
+        source.src = src!;
+        if (type) source.type = type;
+        player.append(source);
+      }
+      facade.replaceWith(player);
+      void player.play().catch(() => {
+        // Se o navegador bloquear a reprodução automática, os controles já estão na tela.
+      });
       player.focus();
-    });
-    player.addEventListener('play', () => {
-      play.hidden = true;
     });
   });
 }

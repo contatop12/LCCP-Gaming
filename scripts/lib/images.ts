@@ -96,17 +96,25 @@ export async function srcset(image: Source, widths: number[], format: Format): P
 
 const placeholders = new Map<string, Promise<string>>();
 
-/** Miniatura de ~24 px em WebP, inline como data URI: aparece borrada até a foto real decodificar. */
-export function lqip(image: Source): Promise<string> {
+/**
+ * Cor de reserva da foto, como valor CSS de 7 caracteres (antes era uma miniatura WebP de ~24 px em base64, 300 a 500 bytes
+ * por foto no HTML). Vem da luminância média, sem matiz: o espaço fica grafite neutro até a foto decodificar, e a interface
+ * continua sem nenhuma cor além do laranja.
+ */
+export function placeholderColor(image: Source): Promise<string> {
   let found = placeholders.get(image.digest);
   if (!found) {
     found = sharp(readFileSync(join(MEDIA_DIR, image.file)))
       .rotate()
-      .resize({ width: 24 })
-      .modulate({ saturation: 1.15 })
-      .webp({ quality: 38, effort: 6 })
-      .toBuffer()
-      .then((data) => `data:image/webp;base64,${data.toString('base64')}`);
+      .resize(8, 8, { fit: 'cover' })
+      .greyscale()
+      .stats()
+      .then(({ channels }) => {
+        // Escurece a média para o tom do bloco: a foto é clara, mas a reserva fica entre o grafite e o cinza.
+        const level = Math.round(Math.min(Math.max(channels[0]!.mean * 0.45, 38), 92));
+        const hex = level.toString(16).padStart(2, '0');
+        return `#${hex}${hex}${hex}`;
+      });
     placeholders.set(image.digest, found);
   }
   return found;

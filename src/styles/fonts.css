@@ -1,14 +1,17 @@
 /*
- * Fontes hospedadas no próprio site (src/assets/fonts), só o subconjunto latino, que cobre todo o português.
- * O build troca cada url() por uma cópia com hash em /assets/fonts/. Licenças (OFL) na mesma pasta.
+ * Fontes hospedadas no próprio site (src/assets/fonts), reduzidas aos caracteres do português do Brasil.
+ * Como regenerar: scripts/fonts/subset.py (precisa de fonttools e brotli, fora do projeto). O build troca cada
+ * url() por uma cópia com hash em /assets/fonts/. Licenças (OFL) na mesma pasta.
+ *
+ * As fontes de reserva usam as métricas das fontes reais (size-adjust e overrides calculados por subset.py),
+ * então a troca de fonte não desloca o texto. Só a Saira 700 (o título da abertura) é pré-carregada.
  */
 @font-face {
   font-family: 'Saira Condensed';
   font-style: normal;
   font-display: swap;
   font-weight: 600;
-  src: url(../assets/fonts/saira-condensed-latin-600-normal.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url(../assets/fonts/saira-condensed-pt-600.woff2) format('woff2');
 }
 
 @font-face {
@@ -16,15 +19,33 @@
   font-style: normal;
   font-display: swap;
   font-weight: 700;
-  src: url(../assets/fonts/saira-condensed-latin-700-normal.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url(../assets/fonts/saira-condensed-pt-700.woff2) format('woff2');
 }
 
 @font-face {
   font-family: 'IBM Plex Sans Variable';
   font-style: normal;
   font-display: swap;
-  font-weight: 100 700;
-  src: url(../assets/fonts/ibm-plex-sans-latin-wght-normal.woff2) format('woff2-variations');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  font-weight: 400 700;
+  src: url(../assets/fonts/ibm-plex-sans-pt-wght-400-700.woff2) format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Saira Condensed Reserva';
+  font-weight: 600 700;
+  src: local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'), local('Helvetica Bold');
+  size-adjust: 72.9%;
+  ascent-override: 155.7%;
+  descent-override: 60.2%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans Reserva';
+  font-weight: 400 700;
+  src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Helvetica');
+  size-adjust: 99.9%;
+  ascent-override: 102.6%;
+  descent-override: 27.5%;
+  line-gap-override: 0%;
 }

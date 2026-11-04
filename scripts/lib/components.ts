@@ -7,11 +7,12 @@ import { categories, categoriesByPriority, publishedItems, type CatalogCategory 
 import { faq } from '../../src/data/faq.ts';
 import { images, video, type SiteImage } from '../../src/data/media.ts';
 import { siteConfig } from '../../src/data/site.ts';
+import { steps } from '../../src/data/steps.ts';
 import { symptomSets, type SymptomSetName } from '../../src/data/symptoms.ts';
 import { whatsappContexts, whatsappUrl, type WhatsappContext } from '../../src/data/whatsapp.ts';
 import { xrayCrop, xrayParts } from '../../src/data/xray.ts';
 import { classes, esc, fail, parseAttrs, type Attrs } from './html.ts';
-import { lqip, source, srcset, variant, type Source } from './images.ts';
+import { placeholderColor, source, srcset, variant, type Source } from './images.ts';
 
 /** Estado de uma página durante a expansão: usado nas mensagens de erro e para levar itens ao <head>. */
 export interface PageImage {
@@ -27,6 +28,8 @@ export interface PageContext {
   headExtras: string[];
   faqSets: Set<string>;
   hasVideo: boolean;
+  /** Conjunto de passos (src/data/steps.ts) exibido na página, que também sai como HowTo no JSON-LD. */
+  howto?: string;
   /** Trechos de CSS (src/styles/parts/<nome>.css) que a página usa, para não embutir o resto. */
   parts: Set<string>;
   /** Scripts extras (src/client/<nome>-entry.ts) que a página usa. */
@@ -105,7 +108,7 @@ export interface PictureOptions {
   eager?: boolean;
   /** Recorte alternativo para outra faixa de tela. */
   art?: { image: Source; widths: number[]; sizes: string; media: string };
-  /** Miniatura inline (data URI) que aparece borrada até a foto decodificar. */
+  /** Cor de reserva (hex) do espaço da foto até ela decodificar. */
   placeholder?: string;
   /** Estilo inline extra (ex.: object-position). */
   style?: string;
@@ -126,7 +129,7 @@ export async function picture(image: Source, alt: string, widths: number[], size
       `<source type="image/avif" media="${esc(art.media)}" srcset="${artAvif.attribute}" sizes="${esc(art.sizes)}" ${dims(art.image)}>` +
       `<source type="image/webp" media="${esc(art.media)}" srcset="${artWebp.attribute}" sizes="${esc(art.sizes)}" ${dims(art.image)}>`;
   }
-  const inline = [placeholder ? `background:url(${placeholder}) center/cover no-repeat` : '', style ?? ''].filter(Boolean).join(';');
+  const inline = [placeholder ? `background-color:${placeholder}` : '', style ?? ''].filter(Boolean).join(';');
   const img =
     `<img${className ? ` class="${esc(className)}"` : ''} src="${fallback.largest}" alt="${esc(alt)}" ${dims(image)}` +
     ` loading="${priority || eager ? 'eager' : 'lazy'}" decoding="${priority ? 'sync' : 'async'}"${priority ? ' fetchpriority="high"' : eager ? '' : ' fetchpriority="low"'}${inline ? ` style="${esc(inline)}"` : ''}>`;
@@ -156,6 +159,8 @@ interface PhotoOptions {
   class?: string;
   priority?: boolean;
   pos?: string;
+  /** Nome da transição entre páginas (view-transition-name: morph-<nome>): o mesmo nome nas duas páginas faz a foto se mover de uma para a outra. */
+  morph?: string;
   /** Sem legenda (a imagem é um fundo de bloco com texto por cima). */
   bare?: boolean;
 }
@@ -165,7 +170,7 @@ async function photo(page: PageContext, image: SiteImage, sizes: string, options
   await track(page, image, src);
   const inner = await picture(src, image.alt, options.widths ?? [480, 800, 1200], sizes, {
     priority: options.priority,
-    placeholder: options.priority ? undefined : await lqip(src),
+    placeholder: options.priority ? undefined : await placeholderColor(src),
     style: options.pos ? `object-position:${options.pos}` : undefined,
   });
   const caption = image.caption && !options.bare ? `<figcaption>${esc(image.caption)}</figcaption>` : '';
@@ -179,12 +184,13 @@ async function tile(page: PageContext, image: SiteImage, sizes: string, options:
   const inner = await picture(src, image.alt, options.widths ?? [480, 800, 1200], sizes, {
     class: 'tile__img',
     priority: options.priority,
-    placeholder: options.priority ? undefined : await lqip(src),
+    placeholder: options.priority ? undefined : await placeholderColor(src),
     style: options.pos ? `object-position:${options.pos}` : undefined,
   });
   const text = body.trim();
-  const caption = !text && image.caption ? `<figcaption class="tile__cap">${esc(image.caption)}</figcaption>` : '';
-  return `<figure class="${classes('tile tile--photo', text && 'tile--has-text', options.class)}">${inner}${text ? `<div class="tile__body">${text}</div>` : ''}${caption}</figure>`;
+  const caption = !text && !options.bare && image.caption ? `<figcaption class="tile__cap">${esc(image.caption)}</figcaption>` : '';
+  const morph = options.morph ? ` style="view-transition-name:morph-${esc(options.morph)}"` : '';
+  return `<figure class="${classes('tile tile--photo', text && 'tile--has-text', options.class)}"${morph}>${inner}${text ? `<div class="tile__body">${text}</div>` : ''}${caption}</figure>`;
 }
 
 function faqList(set: string, title: string, lead: string | undefined, side: string, where: string): string {
@@ -285,14 +291,6 @@ function trace(variant: string, where: string, pulse: boolean): string {
   );
 }
 
-/* ---------- Faixa de serviços ---------- */
-
-function ticker(): string {
-  const names = categories.filter((c) => c.priority !== 'digital' && c.id !== 'atendimento' && c.id !== 'perifericos').map((c) => esc(c.title));
-  const list = (hidden: boolean) => `<ul class="ticker__list"${hidden ? ' aria-hidden="true"' : ''}>${names.map((n) => `<li>${n}</li>`).join('')}</ul>`;
-  return `<div class="ticker"><div class="ticker__track">${list(false)}${list(true)}</div></div>`;
-}
-
 /* ---------- Raio-x do gabinete ---------- */
 
 const XRAY = { width: 1120, height: 570, photoLeft: 310, photoWidth: 500, labelEdge: 292 };
@@ -302,7 +300,7 @@ async function xray(page: PageContext): Promise<string> {
   const image = images.hero;
   const src = await source(image.file);
   const scale = XRAY.photoWidth / xrayCrop.width;
-  const inner = await picture(src, image.alt, [720, 1080, 1440], '(min-width: 1100px) 55vw, 150vw', { class: 'xray__img', placeholder: await lqip(src) });
+  const inner = await picture(src, image.alt, [720, 1080, 1440], '(min-width: 1100px) 62vw, 135vw', { class: 'xray__img', placeholder: await placeholderColor(src) });
   await track(page, image, src);
 
   const lines: string[] = [];
@@ -400,6 +398,8 @@ const tags: Record<string, Renderer> = {
         class: attrs.get('class'),
         priority: attrs.has('priority'),
         pos: attrs.get('pos'),
+        morph: attrs.get('morph'),
+        bare: attrs.has('bare'),
       },
       inner,
     );
@@ -480,7 +480,7 @@ const tags: Record<string, Renderer> = {
     const id = attrs.get('id') ?? 'localizacao';
     const intro = attrs.get('intro');
     return (
-      `<section class="band band--navy" aria-labelledby="${esc(id)}"><div class="wrap loc"><div class="loc__map">${mapFacade(page)}</div>` +
+      `<section class="band band--deep" aria-labelledby="${esc(id)}"><div class="wrap loc"><div class="loc__map">${mapFacade(page)}</div>` +
       `<div class="loc__info"><h2 id="${esc(id)}">${required(attrs, 'title', where)}</h2>${intro ? `<p class="loc__intro">${intro}</p>` : ''}` +
       `${addressBlock(requireContext(attrs.get('context'), where), required(attrs, 'location', where), attrs.get('label'))}</div></div></section>`
     );
@@ -495,24 +495,42 @@ const tags: Record<string, Renderer> = {
     );
   },
 
-  'lcpc-video': (_attrs, _inner, page) => {
+  // Capa leve (imagem AVIF/WebP, carregada sob demanda) e clicável. O <video> só entra na página depois do clique
+  // (src/client/video.ts). Sem JavaScript, o <noscript> traz o player nativo com controles e nada baixa antes do play.
+  'lcpc-video': async (_attrs, _inner, page) => {
     page.hasVideo = true;
+    const src = await source(images.videoGabinete.file);
+    const cover = await picture(src, '', [232, 464], 'min(100vw, 240px)', {
+      placeholder: await placeholderColor(src),
+      style: 'object-position:50% 50%',
+    });
+    const sources = video.sources.map((item) => `<source src="${esc(item.src)}" type="${esc(item.type)}">`).join('');
+    const data = video.sources.map((item) => `${esc(item.src)}|${esc(item.type)}`).join(';');
     return (
-      `<figure class="video" data-video><div class="video__frame"><video controls preload="none" playsinline poster="${esc(video.poster)}" width="${video.width}" height="${video.height}" aria-label="${esc(video.title)}">` +
-      `<source src="${esc(video.src)}" type="video/mp4"><a href="${esc(video.src)}">Baixar o vídeo em MP4</a></video>` +
-      `<button class="video__play" type="button" hidden data-video-play><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" focusable="false"><path fill="currentColor" d="M7 4.5v15l13-7.5z"/></svg><span>Assistir ao vídeo</span></button></div>` +
+      `<figure class="video" data-video data-sources="${data}" data-width="${video.width}" data-height="${video.height}" data-title="${esc(video.title)}"><div class="video__frame">` +
+      `<button class="video__facade" type="button" data-video-open hidden aria-label="Assistir ao vídeo: ${esc(video.title)}">${cover}` +
+      `<span class="video__play" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30" focusable="false"><path fill="currentColor" d="M7 4.5v15l13-7.5z"/></svg><span>Assistir ao vídeo</span></span></button>` +
+      `<noscript><video controls preload="none" playsinline poster="${esc(video.poster)}" width="${video.width}" height="${video.height}" aria-label="${esc(video.title)}">${sources}` +
+      `<a href="${esc(video.sources[video.sources.length - 1]!.src)}">Baixar o vídeo em MP4</a></video></noscript></div>` +
       `<figcaption>${esc(video.description)}</figcaption></figure>`
     );
   },
 
   'lcpc-trace': (attrs, _inner, page) => trace(attrs.get('variant') ?? '1', `${page.where} <lcpc-trace>`, attrs.has('pulse')),
 
-  'lcpc-ticker': (_attrs, _inner, page) => {
-    page.parts.add('ticker');
-    return ticker();
-  },
-
   'lcpc-xray': (_attrs, _inner, page) => xray(page),
+
+  // Passos do atendimento. A mesma lista (src/data/steps.ts) alimenta o HowTo do JSON-LD, então os dois nunca divergem.
+  'lcpc-steps': (attrs, _inner, page) => {
+    const where = `${page.where} <lcpc-steps>`;
+    const set = required(attrs, 'set', where);
+    if (!Object.hasOwn(steps, set)) fail(where, `conjunto de passos desconhecido "${set}". Opções: ${Object.keys(steps).join(', ')}`);
+    page.howto = set;
+    const items = steps[set as keyof typeof steps]
+      .map((step) => `<li><strong class="steps__name">${esc(step.name)}</strong><p>${esc(step.text)}</p></li>`)
+      .join('');
+    return `<ol class="steps steps--cards">${items}</ol>`;
+  },
 
   'lcpc-symptoms': (attrs, _inner, page) => {
     const where = `${page.where} <lcpc-symptoms>`;

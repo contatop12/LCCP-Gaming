@@ -132,31 +132,47 @@ const desktop = { viewport: { width: 1440, height: 900 } };
   await ctx.close();
 }
 
-// 5. Video on demand
+// 5. Video on demand (revisão 2: capa leve e <video> criado só depois do clique)
 {
   const ctx = await browser.newContext(desktop);
   const page = await ctx.newPage();
-  const mp4 = [];
-  page.on('request', (r) => { if (r.url().endsWith('.mp4')) mp4.push(r.url()); });
+  const media = [];
+  const posters = [];
+  page.on('request', (r) => {
+    if (/\.(mp4|webm)(\?|$)/.test(r.url())) media.push(r.url());
+    if (/video-pc-gamer-capa/.test(r.url())) posters.push(r.url());
+  });
   await page.goto(BASE + '/pc-gamer/', { waitUntil: 'networkidle' });
-  ok('Vídeo não baixa antes do clique', mp4.length === 0, `${mp4.length} requisições`);
+  ok('Vídeo: nenhuma requisição ao arquivo nem à capa JPEG antes do clique', media.length === 0 && posters.length === 0, `${media.length} vídeo, ${posters.length} capa`);
+  ok('Vídeo: não existe <video> na página antes do clique (só no <noscript>)', (await page.locator('video').count()) === 0);
+  const facadeImg = page.locator('.video__facade img');
+  const facadeBefore = await facadeImg.evaluate((img) => ({ complete: img.complete && img.naturalWidth > 0, lazy: img.loading }));
+  ok('Capa do vídeo: imagem preguiçosa, ainda não baixada longe da tela', facadeBefore.lazy === 'lazy' && !facadeBefore.complete, JSON.stringify(facadeBefore));
+  await page.locator('.video__facade').scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => { const i = document.querySelector('.video__facade img'); return i.complete && i.naturalWidth > 0; }, null, { timeout: 10000 });
+  ok('Capa do vídeo: carrega em AVIF ou WebP ao chegar perto, sem baixar o vídeo', /\.(avif|webp)$/.test(await facadeImg.evaluate((i) => i.currentSrc)) && media.length === 0);
+  const play = page.locator('[data-video-open]');
+  ok('Botão de reprodução visível, com nome acessível', (await play.isVisible()) && /Assistir ao vídeo/.test((await play.getAttribute('aria-label')) ?? ''));
+  await play.click();
+  await page.waitForFunction(() => { const v = document.querySelector('video'); return v && v.currentTime > 0.3 && !v.paused; }, null, { timeout: 20000 });
   const attrs = await page.evaluate(() => {
     const v = document.querySelector('video');
     const r = v.getBoundingClientRect();
-    return { controls: v.controls, preload: v.preload, autoplay: v.autoplay, ratio: +(r.width / r.height).toFixed(3), poster: v.poster };
+    return { controls: v.controls, autoplayAttr: v.hasAttribute('autoplay'), ratio: +(r.width / r.height).toFixed(3), src: v.currentSrc.split('/').pop(), duration: Math.round(v.duration), w: v.videoWidth, h: v.videoHeight };
   });
-  ok('Vídeo com controles, sem autoplay, enquadramento vertical', attrs.controls && attrs.preload === 'none' && !attrs.autoplay && Math.abs(attrs.ratio - 464 / 832) < 0.01, JSON.stringify(attrs));
-  const poster = await page.request.get(attrs.poster);
-  ok('Capa do vídeo disponível', poster.ok());
-  const play = page.locator('[data-video-play]');
-  ok('Botão de reprodução visível', await play.isVisible());
-  await play.click();
-  await page.waitForFunction(() => { const v = document.querySelector('video'); return v.currentTime > 0.3 && !v.paused; }, null, { timeout: 15000 });
-  ok('Vídeo toca ao clicar', mp4.length > 0, `${mp4.length} requisição`);
-  ok('Botão some depois do play', !(await play.isVisible()));
-  const hasAudio = await page.evaluate(() => { const v = document.querySelector('video'); return { muted: v.muted, duration: Math.round(v.duration), w: v.videoWidth, h: v.videoHeight }; });
-  ok('Arquivo do vídeo correto', hasAudio.w === 464 && hasAudio.h === 832 && hasAudio.duration === 26, JSON.stringify(hasAudio));
+  ok('Vídeo toca depois do clique, com controles e enquadramento vertical', attrs.controls && !attrs.autoplayAttr && Math.abs(attrs.ratio - 464 / 832) < 0.02 && media.length > 0, JSON.stringify(attrs));
+  ok('Vídeo escolhe a fonte moderna (WebM AV1) e tem o arquivo correto', attrs.src.endsWith('.webm') && attrs.w === 464 && attrs.h === 832 && attrs.duration === 26, JSON.stringify(attrs));
+  ok('Capa JPEG continua sem ser baixada depois do clique', posters.length === 0);
   await ctx.close();
+  // Navegador que não decodifica o WebM (a requisição falha): o próximo <source>, o MP4 H.264, entra no lugar.
+  const old = await browser.newContext(desktop);
+  await old.route('**/*.webm', (route) => route.abort());
+  const op = await old.newPage();
+  await op.goto(BASE + '/pc-gamer/', { waitUntil: 'load' });
+  await op.locator('[data-video-open]').click();
+  await op.waitForFunction(() => { const v = document.querySelector('video'); return v && v.currentSrc && v.readyState > 0; }, null, { timeout: 20000 });
+  ok('Sem WebM/AV1 o vídeo cai no MP4 H.264', (await op.evaluate(() => document.querySelector('video').currentSrc)).endsWith('.mp4'));
+  await old.close();
 }
 
 // 6. Every WhatsApp CTA: number, message, analytics event, no delay
@@ -240,7 +256,7 @@ const desktop = { viewport: { width: 1440, height: 900 } };
   ok('Sem JavaScript, o conteúdo principal está no HTML', (await p2.locator('h1').textContent()).includes('PC gamer') && (await p2.locator('#diagnostico .sx__panel').count()) === symptomSets.gamer.length);
   const visiblePanels = await p2.locator('#diagnostico .sx__panel:visible').count();
   ok('Sem JavaScript, todas as respostas do seletor de sintomas estão legíveis', visiblePanels === symptomSets.gamer.length, `${visiblePanels} painéis visíveis`);
-  ok('Sem JavaScript, o vídeo mantém controles nativos', await p2.locator('video[controls]').isVisible() && !(await p2.locator('[data-video-play]').isVisible()));
+  ok('Sem JavaScript, o vídeo mantém controles nativos (player do <noscript>) e a capa interativa fica oculta', await p2.locator('video[controls]').isVisible() && !(await p2.locator('[data-video-open]').isVisible()));
   await noJs.close();
 }
 
@@ -251,13 +267,21 @@ const desktop = { viewport: { width: 1440, height: 900 } };
   await page.goto(BASE + '/', { waitUntil: 'load' });
   ok('Movimento reduzido respeitado', (await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)) === 'auto');
   await page.waitForTimeout(1200);
-  const calm = await page.evaluate(() => ({
-    running: document.getAnimations().filter((a) => a.playState === 'running').length,
-    ticker: getComputedStyle(document.querySelector('.ticker__track')).animationName,
-    clone: getComputedStyle(document.querySelector('.ticker__list[aria-hidden]')).display,
-    scan: getComputedStyle(document.querySelector('.hero__media'), '::after').animationName,
-  }));
-  ok('Movimento reduzido para de verdade: nenhuma animação rodando, faixa estática sem cópia', calm.running === 0 && calm.ticker === 'none' && calm.clone === 'none' && calm.scan === 'none', JSON.stringify(calm));
+  const calm = await page.evaluate(() => {
+    const animated = [...document.querySelectorAll('*')].filter((el) => ['', '::before', '::after'].some((pseudo) => getComputedStyle(el, pseudo).animationName !== 'none'));
+    return {
+      running: document.getAnimations().filter((a) => a.playState === 'running').length,
+      animatedElements: animated.length,
+      hero: getComputedStyle(document.querySelector('.hero__media img')).animationName,
+      photo: getComputedStyle(document.querySelector('.tile__img')).animationName,
+      photoFilter: getComputedStyle(document.querySelector('.tile__img')).filter,
+      trace: getComputedStyle(document.querySelector('.t-signal')).display,
+      transition: getComputedStyle(document.querySelector('.tile__img')).transitionDuration,
+    };
+  });
+  ok('Movimento reduzido para de verdade: nenhuma animação nem transição, fotos em cor natural, sem sinal na trilha', calm.running === 0 && calm.animatedElements === 0 && calm.hero === 'none' && calm.photo === 'none' && calm.photoFilter === 'none' && calm.trace === 'none' && /^0s/.test(calm.transition), JSON.stringify(calm));
+  const vt = await page.evaluate(() => [...document.styleSheets].flatMap((sheet) => [...sheet.cssRules]).flatMap((rule) => (rule.cssRules ? (!rule.media || matchMedia(rule.media.mediaText).matches ? [...rule.cssRules] : []) : [rule])).filter((rule) => rule.constructor.name === 'CSSViewTransitionRule' || /^@view-transition/.test(rule.cssText)).length);
+  ok('Movimento reduzido: nenhuma regra de View Transition ativa', vt === 0, String(vt));
   await page.goto(BASE + '/pc-gamer/', { waitUntil: 'load' });
   await page.waitForTimeout(600);
   const calmGamer = await page.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running').length);
@@ -271,13 +295,11 @@ const desktop = { viewport: { width: 1440, height: 900 } };
   const motion = await lp.evaluate(() => {
     const animations = document.getAnimations();
     const names = [...new Set(animations.map((a) => a.animationName).filter(Boolean))];
-    // Só transform e opacity são animados.
     const props = new Set();
     for (const a of animations) for (const frame of a.effect.getKeyframes()) for (const key of Object.keys(frame)) if (!['offset', 'easing', 'composite', 'computedOffset'].includes(key)) props.add(key);
-    return { names, props: [...props], tickerCopies: document.querySelectorAll('.ticker__list').length, hiddenCopies: document.querySelectorAll('.ticker__list[aria-hidden="true"]').length };
+    return { names, props: [...props], supportsScroll: CSS.supports('animation-timeline: view()') };
   });
-  ok('Com movimento permitido há animação (faixa e abertura) e só de transform e opacity', motion.names.includes('ticker') && motion.props.every((prop) => ['transform', 'opacity'].includes(prop)), JSON.stringify(motion));
-  ok('Faixa de serviços: a cópia para a rolagem infinita fica oculta para leitores de tela', motion.tickerCopies === 2 && motion.hiddenCopies === 1);
+  ok('Com movimento permitido há animação (abertura, fotos, trilha) e só de transform, opacity e filter', motion.names.includes('boot') && motion.names.includes('power-on') && motion.props.every((prop) => ['transform', 'opacity', 'filter'].includes(prop)), JSON.stringify(motion));
   await live.close();
 
   for (const [name, options, expected] of [['desktop', desktop, 'pc-gamer-gabinete-branco-rgb-vila-marari'], ['celular', mobile, 'pc-gamer-gabinete-rgb-recorte-celular']]) {
@@ -333,12 +355,10 @@ const desktop = { viewport: { width: 1440, height: 900 } };
     ['apoio / rodapé', '#c2c8cf', '#15171a', 4.5], ['tinta / laranja', '#15171a', '#fa6a0a', 4.5], ['tinta / laranja hover', '#15171a', '#ff7d26', 4.5],
     ['branco / botão escuro', '#ffffff', '#15171a', 4.5], ['laranja forte / grafite (título)', '#ff7d26', '#1d2024', 3], ['laranja / grafite-2 (marcador)', '#fa6a0a', '#262a2f', 3],
     ['borda de controle / grafite', '#868e97', '#1d2024', 3], ['borda de controle / grafite-2', '#868e97', '#262a2f', 3],
-    ['azul / grafite (dados)', '#2fa2ff', '#1d2024', 4.5], ['azul / marinho (tela de sintomas)', '#2fa2ff', '#13253d', 4.5], ['apoio / marinho', '#c2c8cf', '#13253d', 4.5],
-    ['texto / marinho', '#f4f5f6', '#0d1a2c', 4.5], ['branco / azul forte', '#ffffff', '#0060f0', 4.5], ['tinta / laranja (faixa em movimento)', '#15171a', '#fa6a0a', 4.5],
-    ['laranja / marinho (marcador)', '#fa6a0a', '#13253d', 3], ['azul / grafite-2 (marcador)', '#2fa2ff', '#262a2f', 3],
+    ['laranja / grafite (links e marcadores)', '#ff7d26', '#1d2024', 4.5], ['laranja / grafite-2', '#ff7d26', '#262a2f', 4.5], ['apoio / ink', '#c2c8cf', '#15171a', 4.5], ['texto / ink', '#f4f5f6', '#15171a', 4.5], ['laranja / ink (marcador)', '#fa6a0a', '#15171a', 3],
   ];
   const bad = pairs.filter(([, a, b, min]) => ratio(a, b) < min);
-  ok('Contraste AA em 22 combinações de cor', bad.length === 0, pairs.map(([n, a, b]) => `${n} ${ratio(a, b).toFixed(1)}`).join('; '));
+  ok('Contraste AA nas combinações de cor da paleta', bad.length === 0, pairs.map(([n, a, b]) => `${n} ${ratio(a, b).toFixed(1)}`).join('; '));
 }
 
 
@@ -349,7 +369,7 @@ const desktop = { viewport: { width: 1440, height: 900 } };
   for (const [name, options] of [['1100', { viewport: { width: 1100, height: 900 } }], ['1440', desktop], ['1920', { viewport: { width: 1920, height: 1080 } }], ['celular 390', mobile], ['celular 320', { viewport: { width: 320, height: 700 }, isMobile: true, hasTouch: true }]]) {
     const ctx = await browser.newContext(options);
     const page = await ctx.newPage();
-    await page.goto(BASE + '/', { waitUntil: 'load' });
+    await page.goto(BASE + '/pc-gamer/', { waitUntil: 'load' });
     await page.evaluate(async () => { document.querySelectorAll('img[loading=lazy]').forEach((i) => (i.loading = 'eager')); await Promise.all([...document.images].map((i) => i.decode().catch(() => {}))); });
     const links = page.locator('.xray__item a');
     const hrefs = await links.evaluateAll((els) => els.map((el) => el.getAttribute('href')));
@@ -521,14 +541,14 @@ const desktop = { viewport: { width: 1440, height: 900 } };
       const lazy = [...document.querySelectorAll('img[loading=lazy]:not(.logo)')];
       return {
         lazy: lazy.length,
-        noPlaceholder: lazy.filter((i) => !/url\(data:image\/webp;base64,/.test(i.getAttribute('style') || '')).length,
+        noPlaceholder: lazy.filter((i) => !/background-color:#[0-9a-f]{6}/.test(i.getAttribute('style') || '') && !i.closest('.video__facade')).length,
         noSize: [...document.images].filter((i) => !i.getAttribute('width') || !i.getAttribute('height')).length,
         h1: document.querySelectorAll('h1').length,
       };
     });
     if (info.noPlaceholder || info.noSize || info.h1 !== 1) problems.push(`${route} ${JSON.stringify(info)}`);
   }
-  ok('Fotos preguiçosas com miniatura inline, todas as imagens com largura e altura, uma H1 por página', problems.length === 0, problems.join(' | '));
+  ok('Fotos preguiçosas com cor de reserva inline, todas as imagens com largura e altura, uma H1 por página', problems.length === 0, problems.join(' | '));
   await ctx.close();
 }
 
@@ -546,6 +566,211 @@ const desktop = { viewport: { width: 1440, height: 900 } };
   const plain = await ctx.request.get(BASE + '/media/video-pc-gamer.mp4');
   ok('Sem Range, o vídeo inteiro responde 200', plain.status() === 200 && (await plain.body()).length === total, String(plain.status()));
   await ctx.close();
+}
+
+// 16. Revisão 2: Range também no WebM, cabeçalhos de cache e Link
+{
+  const ctx = await browser.newContext();
+  const webm = await ctx.request.get(BASE + '/media/video-pc-gamer.webm', { headers: { Range: 'bytes=0-99' } });
+  ok('Range responde 206 também no WebM, com Content-Type video/webm', webm.status() === 206 && (await webm.body()).length === 100 && webm.headers()['content-type'] === 'video/webm', `${webm.status()} ${webm.headers()['content-type']}`);
+  const cache = {};
+  for (const path of ['/', '/robots.txt', '/llms.txt', '/llms-full.txt', '/sitemap.xml', '/.well-known/security.txt', '/favicon.png', '/media/video-pc-gamer.webm']) cache[path] = (await ctx.request.get(BASE + path)).headers()['cache-control'];
+  const home = await ctx.request.get(BASE + '/');
+  const assetUrl = (await home.text()).match(/\/assets\/img\/[^"\s,]+\.avif/)?.[0];
+  cache.asset = (await ctx.request.get(BASE + assetUrl)).headers()['cache-control'];
+  ok('Cache-Control por tipo: HTML revalida, /assets imutável, mídia e ícones com prazo, rastreamento por 1 hora', /must-revalidate/.test(cache['/']) && /immutable/.test(cache.asset) && /max-age=2592000/.test(cache['/media/video-pc-gamer.webm']) && /max-age=86400/.test(cache['/favicon.png']) && /max-age=3600/.test(cache['/robots.txt']) && /max-age=3600/.test(cache['/llms-full.txt']) && /max-age=3600/.test(cache['/.well-known/security.txt']), JSON.stringify(cache));
+  const link = home.headers()['link'] ?? '';
+  ok('Página envia o cabeçalho Link com preload da fonte do título e da foto de abertura', /rel=preload; as=font/.test(link) && /as=image/.test(link), link.slice(0, 120));
+  const internal = await ctx.request.get(BASE + '/_links.json');
+  ok('Arquivo interno _links.json não é servido ao público', internal.status() === 404);
+  await ctx.close();
+}
+
+// 17. Revisão 2: cor como evento (fotos dessaturadas que "ligam"), abertura, View Transitions e Speculation Rules
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE + '/', { waitUntil: 'load' });
+  await page.waitForTimeout(2000);
+  const hero = await page.evaluate(() => ({ filter: getComputedStyle(document.querySelector('.hero__media img')).filter, name: getComputedStyle(document.querySelector('.hero__media img')).animationName }));
+  ok('Abertura: a foto do gabinete termina em cor total (única foto sempre saturada)', hero.name === 'boot' && (hero.filter === 'none' || /saturate\(1\)/.test(hero.filter)), JSON.stringify(hero));
+  // Foto fora da região central: dessaturada. Foto no centro: em cor.
+  const state = async (selector) => page.evaluate((sel) => {
+    const img = document.querySelector(sel);
+    img.scrollIntoView({ block: 'center' });
+    return null;
+  }, selector);
+  await state('#trabalho .tile__img');
+  await page.waitForTimeout(500);
+  const centered = await page.evaluate(() => getComputedStyle(document.querySelector('#trabalho .tile__img')).filter);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(500);
+  const away = await page.evaluate(() => getComputedStyle(document.querySelector('#trabalho .tile__img')).filter);
+  const sat = (value) => Number(value.match(/saturate\(([\d.]+)\)/)?.[1] ?? 1);
+  ok('Fotos: dessaturadas fora da tela e em cor ao chegar ao centro (animation-timeline: view)', sat(away) < 0.75 && sat(centered) > 0.95, `fora ${away} | centro ${centered}`);
+  // Hover (mouse) também liga a foto.
+  await page.evaluate(() => document.querySelector('#trabalho').scrollIntoView({ block: 'start' }));
+  await page.evaluate(() => window.scrollBy(0, -400));
+  await page.waitForTimeout(400);
+  const target = page.locator('#trabalho .tile--photo').first();
+  await target.scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollBy(0, 600));
+  await page.waitForTimeout(400);
+  const before = await page.evaluate(() => getComputedStyle(document.querySelector('#trabalho .tile__img')).filter);
+  await page.locator('#trabalho .tile--photo').first().hover({ force: true }).catch(() => {});
+  await page.waitForTimeout(500);
+  const hovered = await page.evaluate(() => getComputedStyle(document.querySelector('#trabalho .tile__img')).filter);
+  ok('Fotos: o mouse sobre o bloco acende a foto (cor total)', sat(hovered) >= 1 && sat(hovered) >= sat(before), `antes ${before} | hover ${hovered}`);
+  await ctx.close();
+
+  // Toque (celular): o efeito acontece só pela rolagem, sem hover.
+  const touch = await browser.newContext(mobile);
+  const tp = await touch.newPage();
+  await tp.goto(BASE + '/', { waitUntil: 'load' });
+  await tp.evaluate(() => document.querySelector('#trabalho .tile__img').scrollIntoView({ block: 'center' }));
+  await tp.waitForTimeout(500);
+  const touchLit = await tp.evaluate(() => getComputedStyle(document.querySelector('#trabalho .tile__img')).filter);
+  await tp.evaluate(() => window.scrollTo(0, 0));
+  await tp.waitForTimeout(400);
+  const touchDim = await tp.evaluate(() => getComputedStyle(document.querySelector('#trabalho .tile__img')).filter);
+  ok('Celular (toque): a foto liga ao rolar até o centro e volta a dessaturar, sem depender de hover', sat(touchLit) > 0.95 && sat(touchDim) < 0.75, `${touchDim} -> ${touchLit}`);
+  await touch.close();
+
+  // Speculation Rules e View Transitions entre documentos
+  const vtCtx = await browser.newContext(desktop);
+  const vp = await vtCtx.newPage();
+  await vp.addInitScript(() => {
+    addEventListener('pagereveal', (event) => {
+      sessionStorage.setItem('vt', event.viewTransition ? 'sim' : 'nao');
+      event.viewTransition?.ready.then(() => sessionStorage.setItem('vtNames', [...document.querySelectorAll('[style*=view-transition-name]')].map((el) => el.getAttribute('style')).join('|')), () => {});
+    });
+  });
+  await vp.goto(BASE + '/', { waitUntil: 'load' });
+  const rules = await vp.evaluate(() => JSON.parse(document.querySelector('script[type=speculationrules]').textContent));
+  ok('Speculation Rules: prerender moderado só de links internos, sem WhatsApp nem 404', rules.prerender?.[0]?.eagerness === 'moderate' && JSON.stringify(rules).includes('"/*"') && JSON.stringify(rules).includes('_blank'));
+  await vp.locator('a.tile__link[href="/conserto-de-notebook/"]').click();
+  await vp.waitForURL('**/conserto-de-notebook/');
+  await vp.waitForTimeout(800);
+  const vt = await vp.evaluate(() => sessionStorage.getItem('vt'));
+  const names = await vp.evaluate(() => [...document.querySelectorAll('[style*=view-transition-name]')].map((el) => el.getAttribute('style')));
+  ok('View Transition entre páginas (sem JavaScript de navegação) com a foto do notebook como elemento compartilhado', vt === 'sim' && names.some((n) => /morph-notebook/.test(n)), `vt=${vt} ${names.join(',')}`);
+  const unique = await vtCtx.newPage();
+  const dupes = [];
+  for (const route of ROUTES) {
+    await unique.goto(BASE + route, { waitUntil: 'load' });
+    const all = await unique.evaluate(() => [...document.querySelectorAll('[style*=view-transition-name]')].map((el) => el.style.viewTransitionName));
+    if (new Set(all).size !== all.length) dupes.push(route);
+  }
+  ok('Nomes de view-transition únicos em cada página (nome repetido cancelaria a transição)', dupes.length === 0, dupes.join());
+  await vtCtx.close();
+}
+
+// 18. Revisão 2: imagens sem bytes de sobra, fontes sem salto, abaixo da dobra sem CLS e âncoras com content-visibility
+{
+  for (const [label, options, dpr] of [['celular 390 @2x', { ...mobile, deviceScaleFactor: 2 }, 2], ['desktop 1440 @1x', desktop, 1], ['desktop 1440 @2x', { ...desktop, deviceScaleFactor: 2 }, 2]]) {
+    const over = [];
+    for (const route of ROUTES) {
+      // Contexto novo por rota: o Chrome reaproveita uma variante maior já em cache, o que mascararia a escolha do srcset.
+      const ctx = await browser.newContext(options);
+      const page = await ctx.newPage();
+      await page.goto(BASE + route, { waitUntil: 'load' });
+      // Rolagem natural: a variante é escolhida quando a imagem preguiçosa chega perto da tela, com o layout já pronto.
+      const total = await page.evaluate(() => document.documentElement.scrollHeight);
+      for (let y = 0; y < total; y += 350) { await page.evaluate((top) => window.scrollTo(0, top), y); await page.waitForTimeout(40); }
+      await page.waitForTimeout(600);
+      const rows = await page.evaluate((density) => [...document.images].filter((i) => i.complete && i.getBoundingClientRect().width > 0).map((i) => {
+        const needed = Math.ceil(i.getBoundingClientRect().width * density);
+        const src = i.currentSrc.split('/').pop();
+        const intrinsic = i.naturalWidth * (parseFloat(getComputedStyle(i).width) ? 1 : 1);
+        return { src, needed, have: Math.round(i.naturalWidth * (i.currentSrc && /-(\d+)\./.test(i.currentSrc) ? 1 : 1)), declared: Number(i.currentSrc.match(/-(\d+)\.[0-9a-f]{8}\./)?.[1] ?? 0), srcsetMax: ([...i.parentElement.querySelectorAll('source[type="image/avif"]')].find((src) => !src.media || matchMedia(src.media).matches)?.srcset ?? '').split(',').filter(Boolean).map((x) => Number(x.trim().split(' ')[1].replace('w', ''))) };
+      }), dpr);
+      for (const row of rows) {
+        // Um arquivo é "grande demais" se há uma variante menor que ainda cobre a largura pedida e ele passa de 1,5x o necessário.
+        const smaller = row.srcsetMax.filter((w) => w >= row.needed).sort((a, b) => a - b)[0];
+        // A mesma foto repetida na página pode reaproveitar a variante já baixada (o navegador decide); só conta foto única.
+        const repeated = rows.filter((other) => other.src.replace(/-\d+\.[0-9a-f]{8}\.\w+$/, '') === row.src.replace(/-\d+\.[0-9a-f]{8}\.\w+$/, '')).length > 1;
+        if (row.declared && smaller && row.declared > smaller && !repeated) over.push(`${route} ${row.src} baixou ${row.declared}w, bastava ${smaller}w (precisa ${row.needed}px)`);
+      }
+      await ctx.close();
+    }
+    ok(`Imagens (${label}): o navegador sempre escolhe a menor variante que cobre o tamanho na tela`, over.length === 0, over.slice(0, 4).join(' | '));
+  }
+
+  // Só a abertura tem prioridade alta, em cada página.
+  {
+    const ctx = await browser.newContext(desktop);
+    const page = await ctx.newPage();
+    const bad = [];
+    for (const route of ROUTES) {
+      await page.goto(BASE + route, { waitUntil: 'load' });
+      const info = await page.evaluate(() => ({ high: [...document.images].filter((i) => i.fetchPriority === 'high').length, syncDecode: [...document.images].filter((i) => i.decoding === 'sync').length, lazyEager: [...document.images].filter((i) => i.loading === 'lazy' && i.fetchPriority === 'high').length }));
+      if (info.high > 1 || info.syncDecode > 1 || info.lazyEager) bad.push(`${route} ${JSON.stringify(info)}`);
+    }
+    ok('Só uma imagem por página com fetchpriority alto e decodificação síncrona (a de abertura)', bad.length === 0, bad.join(' | '));
+    await ctx.close();
+  }
+
+  // Fontes atrasadas: a troca para a fonte final não pode deslocar o texto.
+  for (const [label, options] of [['desktop', desktop], ['celular', mobile]]) {
+    const ctx = await browser.newContext(options);
+    await ctx.route('**/assets/fonts/**', async (route) => { await new Promise((resolve) => setTimeout(resolve, 1500)); await route.continue(); });
+    const page = await ctx.newPage();
+    await page.addInitScript(() => { window.__cls = 0; new PerformanceObserver((l) => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__cls += e.value; }).observe({ type: 'layout-shift', buffered: true }); });
+    const worst = [];
+    for (const route of ['/', '/pc-gamer/', '/conserto-de-notebook/']) {
+      await page.goto(BASE + route, { waitUntil: 'load' });
+      await page.waitForTimeout(2600);
+      const fontsLoaded = await page.evaluate(() => document.fonts.check('700 20px "Saira Condensed"'));
+      const cls = await page.evaluate(() => +window.__cls.toFixed(4));
+      worst.push(`${route} cls=${cls} fonte=${fontsLoaded}`);
+      if (cls > 0.01 || !fontsLoaded) worst.push('FALHOU');
+    }
+    ok(`Fonte chegando 1,5 s depois (${label}): CLS da troca <= 0,01 nas três páginas principais`, !worst.includes('FALHOU'), worst.join(' | '));
+    await ctx.close();
+  }
+
+  // Rolagem completa: CLS (content-visibility) e jank
+  for (const [label, options] of [['desktop 1440', desktop], ['celular 390', mobile]]) {
+    const ctx = await browser.newContext(options);
+    const page = await ctx.newPage();
+    await page.addInitScript(() => {
+      window.__cls = 0;
+      window.__long = [];
+      new PerformanceObserver((l) => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__cls += e.value; }).observe({ type: 'layout-shift', buffered: true });
+      try { new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__long.push(Math.round(e.duration)); }).observe({ type: 'long-animation-frame', buffered: true }); } catch {}
+    });
+    const report = [];
+    for (const route of ROUTES) {
+      await page.goto(BASE + route, { waitUntil: 'load' });
+      const height = await page.evaluate(() => document.documentElement.scrollHeight);
+      for (let y = 0; y < height; y += 300) {
+        await page.evaluate((top) => window.scrollTo(0, top), y);
+        await page.waitForTimeout(60);
+      }
+      await page.waitForTimeout(400);
+      const m = await page.evaluate(() => ({ cls: +window.__cls.toFixed(4), long: window.__long.filter((d) => d > 100).length, worst: Math.max(0, ...window.__long) }));
+      report.push(`${route} cls=${m.cls} longFrames>100ms=${m.long} pior=${m.worst}ms`);
+      if (m.cls > 0.01) report.push('CLS');
+      if (m.long > 3) report.push('JANK');
+    }
+    ok(`Rolagem completa (${label}): CLS <= 0,01 e sem quadros longos repetidos (filtros das fotos)`, !report.includes('CLS') && !report.includes('JANK'), report.join(' | '));
+    await ctx.close();
+  }
+
+  // Âncoras caem no lugar certo mesmo com as seções puladas por content-visibility
+  {
+    const ctx = await browser.newContext(desktop);
+    const page = await ctx.newPage();
+    const miss = [];
+    for (const [route, id] of [['/', 'sintomas'], ['/', 'como-funciona'], ['/', 'trabalho'], ['/pc-gamer/', 'diagnostico'], ['/pc-gamer/', 'upgrade-placa-de-video'], ['/servicos/', 'placas'], ['/conserto-de-notebook/', 'superaquecimento']]) {
+      await page.goto(`${BASE}${route}#${id}`, { waitUntil: 'load' });
+      await page.waitForTimeout(900);
+      const top = await page.evaluate((anchor) => Math.round(document.getElementById(anchor).getBoundingClientRect().top), id);
+      if (top < -5 || top > 220) miss.push(`${route}#${id} topo em ${top}px`);
+    }
+    ok('Âncoras internas caem no começo da tela', miss.length === 0, miss.join(' | '));
+    await ctx.close();
+  }
 }
 
 await browser.close();

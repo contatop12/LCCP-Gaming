@@ -57,9 +57,9 @@ export const images = {
     caption: 'Notebook sem a tampa inferior, com estojo de pontas e chave de precisão ao lado.',
   },
   bancadaNotebookAberto: {
-    file: 'conserto-de-notebook-acer-aberto-sao-paulo.jpg',
-    alt: 'Notebook Acer aberto sobre a bancada, com a placa-mãe e a ventoinha expostas e a tela apoiada atrás',
-    caption: 'Notebook Acer aberto, com a placa-mãe e a ventoinha expostas.',
+    file: 'conserto-de-notebook-aberto-placa-mae-ventoinha-sao-paulo.jpg',
+    alt: 'Notebook aberto sobre a bancada, com a placa-mãe e a ventoinha expostas e a tela apoiada atrás',
+    caption: 'Notebook aberto, com a placa-mãe e a ventoinha expostas.',
   },
   bancadaPositivo: {
     file: 'assistencia-tecnica-notebook-aberto-mao-positivo.jpg',
@@ -91,7 +91,14 @@ export const images = {
 export const logoImage = { file: 'logo-lcpc-gaming.png', alt: 'LCPC Gaming' };
 
 export const video = {
+  /** Arquivo de referência (contentUrl no VideoObject): o MP4 H.264 toca em qualquer navegador. */
   src: '/media/video-pc-gamer.mp4',
+  /** Ordem de preferência: AV1 em WebM (~1,1 MB) e, para navegadores sem AV1, o MP4 H.264 (~2,5 MB). */
+  sources: [
+    { src: '/media/video-pc-gamer.webm', type: 'video/webm; codecs="av01.0.04M.08, opus"' },
+    { src: '/media/video-pc-gamer.mp4', type: 'video/mp4' },
+  ],
+  /** Capa em JPEG: miniatura do VideoObject e capa do player sem JavaScript. A capa da página é a foto videoGabinete, em AVIF e WebP. */
   poster: '/media/video-pc-gamer-capa.jpg',
   width: 464,
   height: 832,

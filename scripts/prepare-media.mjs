@@ -5,7 +5,7 @@
  *   public/media/      vídeo e capa, servidos como arquivos estáticos
  *   public/            favicon e imagem social
  *
- * Uso: npm run media. O vídeo e a capa exigem ffmpeg no PATH.
+ * Uso: npm run media. O vídeo (MP4 e WebM AV1) e a capa exigem ffmpeg no PATH.
  * Os arquivos gerados ficam versionados, então o build não depende deste script.
  */
 import { execFileSync } from 'node:child_process';
@@ -51,13 +51,16 @@ async function buildHero() {
   const MARGIN = 120;
   const CANVAS_W = W + MARGIN * 2;
   const CANVAS_H = H + 100;
+  // O RGB do hardware é a única cor da página: o halo é só um traço (30% do que era) para o gabinete não flutuar
+  // no vazio, em vez de colorir o fundo. Revisão 2: antes as opacidades eram 0.3, 0.34, 0.24, 0.4, 0.18 e 0.1.
+  const HALO = 0.3;
   const glows = [
-    { x: 150, y: 660, r: 520, color: '#fe0072', opacity: 0.3 },
-    { x: 220, y: 400, r: 420, color: '#1418dc', opacity: 0.34 },
-    { x: 170, y: 1120, r: 480, color: '#fe39ff', opacity: 0.24 },
-    { x: 1300, y: 640, r: 470, color: '#723ad1', opacity: 0.4 },
-    { x: 1280, y: 1180, r: 430, color: '#fe0072', opacity: 0.18 },
-    { x: 740, y: 170, r: 460, color: '#00d164', opacity: 0.1 },
+    { x: 150, y: 660, r: 520, color: '#fe0072', opacity: 0.3 * HALO },
+    { x: 220, y: 400, r: 420, color: '#1418dc', opacity: 0.34 * HALO },
+    { x: 170, y: 1120, r: 480, color: '#fe39ff', opacity: 0.24 * HALO },
+    { x: 1300, y: 640, r: 470, color: '#723ad1', opacity: 0.4 * HALO },
+    { x: 1280, y: 1180, r: 430, color: '#fe0072', opacity: 0.18 * HALO },
+    { x: 740, y: 170, r: 460, color: '#00d164', opacity: 0.1 * HALO },
   ];
   const graphite = `rgb(${GRAPHITE.r},${GRAPHITE.g},${GRAPHITE.b})`;
   const fade = (id, x1, y1, x2, y2) =>
@@ -106,7 +109,7 @@ async function buildPhotos() {
   await crop('detalhe-notebook.jpeg', 'conserto-de-notebook-interior-placa-mae.jpg', { left: 0, top: 450, width: 1200, height: 960 });
   await crop('bancada-lcpc.jpeg', 'assistencia-tecnica-bancada-lcpc-gaming-vila-marari.jpg', { left: 0, top: 30, width: 1200, height: 1440 });
   await crop('extras/conserto-de-notebook-vila-marari.jpeg', 'conserto-de-notebook-chaves-de-precisao-bancada.jpg', { left: 0, top: 330, width: 1200, height: 1080 });
-  await crop('extras/conserto-notebook-acer-sao-paulo.jpeg', 'conserto-de-notebook-acer-aberto-sao-paulo.jpg', { left: 0, top: 320, width: 1200, height: 1080 });
+  await crop('extras/conserto-notebook-acer-sao-paulo.jpeg', 'conserto-de-notebook-aberto-placa-mae-ventoinha-sao-paulo.jpg', { left: 0, top: 320, width: 1200, height: 1080 });
   // Fotos extras (nunca as de nao-publicar-macbook).
   await crop('extras/lcpc-conserto-de-notebook.jpeg', 'conserto-de-notebook-placa-mae-chave-de-precisao.jpg', { left: 0, top: 0, width: 1200, height: 1500 });
   await crop('extras/conserto-de-notebook-marari.jpeg', 'bancada-lcpc-gaming-luz-de-anel-logo-no-monitor.jpg', { left: 0, top: 0, width: 1200, height: 1450 });
@@ -121,6 +124,17 @@ function buildStills() {
   still(22.5, 'pc-gamer-gabinete-branco-borda-luminosa-video.jpg');
   still(10, 'pc-gamer-gabinete-lateral-luz-verde-video.jpg');
   still(17, 'pc-gamer-gabinete-branco-luz-rosa-video.jpg');
+}
+
+/** AV1 em WebM: ~1,1 MB contra ~2,5 MB do MP4 H.264, com SSIM igual ou melhor contra o original (conferido na revisão 2). */
+function buildWebm() {
+  const source = join(SRC, 'video-pc-gamer.mp4');
+  execFileSync('ffmpeg', [
+    '-y', '-v', 'error', '-i', source,
+    '-c:v', 'libsvtav1', '-crf', '38', '-preset', '4', '-g', '120', '-r', '30', '-pix_fmt', 'yuv420p',
+    '-c:a', 'libopus', '-b:a', '64k',
+    join(PUB, 'video-pc-gamer.webm'),
+  ]);
 }
 
 function buildVideo() {
@@ -140,6 +154,11 @@ await buildHero();
 await buildBrand();
 await buildPhotos();
 buildStills();
-if (!process.argv.includes('--sem-video')) buildVideo();
+// --sem-video: pula o MP4 e o WebM. --so-webm: refaz só o WebM (AV1). Sem flags, refaz tudo.
+if (process.argv.includes('--so-webm')) buildWebm();
+else if (!process.argv.includes('--sem-video')) {
+  buildVideo();
+  buildWebm();
+}
 
 console.log('Mídias geradas.');

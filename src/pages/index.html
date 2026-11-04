@@ -2,175 +2,164 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <title>Conserto de computador e notebook na Vila Marari | LCPC</title>
-  <meta name="description" content="Assistência técnica em São Paulo: diagnóstico, conserto de notebooks e desktops, limpeza, montagem e upgrade de PC gamer. Peça o orçamento pelo WhatsApp.">
+  <title>Assistência Técnica na Vila Marari | LCPC Gaming</title>
+  <meta name="description" content="Assistência técnica de notebooks e computadores na Vila Marari, Zona Sul de São Paulo: conserto, manutenção, upgrade e PC gamer. Peça orçamento pelo WhatsApp.">
   <!--
     Ajustes desta página. O build lê estas linhas e as remove do HTML final.
     lcpc:faq = conjunto de perguntas de src/data/faq.ts que entra no JSON-LD (deve ser o mesmo do <lcpc-faq> abaixo).
     lcpc:image = foto principal (chave de src/data/media.ts), usada no schema e na imagem social. lcpc:og = título da imagem social.
     Sem lcpc:context, o WhatsApp do cabeçalho e da barra do celular usa a mensagem "geral".
+    Ordem da home (brief da revisão 2): apresentação, serviços por equipamento, seletor de problemas, como funciona,
+    conheça nosso trabalho, Luis, [avaliações reais: omitidas, não há material verificável], perguntas frequentes,
+    localização e condições de atendimento, chamada final.
   -->
   <meta name="lcpc:faq" content="home">
   <meta name="lcpc:image" content="hero">
   <meta name="lcpc:og" content="Assistência técnica de computadores e notebooks na Vila Marari">
   <meta name="lcpc:service" content="Assistência técnica de computadores e notebooks">
   <meta name="lcpc:service-type" content="Assistência técnica de computadores e notebooks">
-  <meta name="lcpc:service-description" content="Diagnóstico, conserto de notebooks e desktops, limpeza, formatação, montagem e upgrade de PC gamer desktop.">
+  <meta name="lcpc:service-description" content="Diagnóstico, conserto e manutenção de notebooks e desktops, limpeza, formatação, upgrade e montagem de PC gamer desktop.">
 </head>
 <body>
 <main>
 
+  <!-- 1. Apresentação principal -->
   <section class="hero">
     <div class="wrap hero__inner">
       <div class="hero__text">
-        <p class="hero__place"><span class="hero__street">Rua Maria Pais de Barros, 329, </span>Vila Marari, São Paulo</p>
         <h1>Assistência técnica de computadores e notebooks na Vila Marari</h1>
         <p class="lead">
-          Diagnóstico, conserto, limpeza e upgrade com <lcpc-business field="owner.name" />, responsável pelos serviços. Também monta e faz manutenção de PC gamer.
+          Conserto, manutenção e upgrades para computadores e notebooks. Montagem e assistência técnica para PCs gamer, na Zona Sul de São Paulo.
         </p>
         <div class="actions">
-          <lcpc-whatsapp context="geral" location="hero" />
-          <a class="btn btn--ghost" href="/pc-gamer/">Ver serviços para PC gamer</a>
+          <lcpc-whatsapp context="geral" location="hero">Solicitar orçamento no WhatsApp</lcpc-whatsapp>
+          <a class="btn btn--ghost" href="#servicos">Conhecer os serviços</a>
         </div>
         <p class="hint">Informe o modelo do equipamento e o que está acontecendo. O orçamento começa por aí.</p>
-        <ul class="hero__tags">
-          <li>Notebooks</li>
-          <li>Desktops e all-in-one</li>
-          <li>PC gamer desktop</li>
-          <li>Diagnóstico com laudo</li>
-        </ul>
       </div>
       <div class="hero__media">
-        <!-- Abertura: imagem principal, com recorte próprio para celular e preload no <head>. -->
-        <lcpc-picture name="hero" sizes="(min-width: 900px) 46vw, 100vw" widths="640,960,1280,1440"
+        <!-- Abertura: imagem principal, com recorte próprio para celular e preload no <head>. É a única foto sempre em cor total. -->
+        <lcpc-picture name="hero" sizes="(min-width: 900px) 36vw, 100vw" widths="640,960,1280,1440"
           art-name="heroMobile" art-widths="390,640,780,1080" art-sizes="100vw" art-media="(max-width: 899px)"
           priority preload preload-media="(min-width: 900px)" />
       </div>
     </div>
   </section>
 
-  <lcpc-ticker />
-
-  <section class="band" aria-labelledby="resposta">
-    <div class="wrap bento">
-      <div class="answer c8">
-        <h2 id="resposta">O que a LCPC Gaming faz na Vila Marari?</h2>
+  <!-- 2. Serviços principais por tipo de equipamento (a resposta direta da página vem junto do título) -->
+  <section class="band" aria-labelledby="servicos-titulo" id="servicos">
+    <div class="wrap">
+      <div class="answer">
+        <h2 id="servicos-titulo">Assistência técnica para cada tipo de equipamento</h2>
         <p>
-          A LCPC Gaming conserta computadores, notebooks e all-in-one na Vila Marari, bairro da Zona Sul de São Paulo. O trabalho começa pelo diagnóstico: <lcpc-business field="owner.name" /> testa memória, armazenamento, fonte, bateria e placa de vídeo e entrega um laudo técnico com o orçamento de reparo. Também há limpeza, formatação, remoção de vírus, upgrade e, em desktops, montagem e manutenção de PC gamer. Para pedir o orçamento, envie o modelo e o sintoma pelo WhatsApp.
+          A LCPC Gaming faz assistência técnica de notebooks, computadores de mesa, all-in-one e PCs gamer desktop, na Vila Marari, Zona Sul de São Paulo. O trabalho começa pelo diagnóstico, que testa memória, armazenamento, fonte, bateria e placa de vídeo e termina em um laudo técnico com o orçamento de reparo. Para pedir, envie o modelo e o sintoma pelo WhatsApp.
         </p>
       </div>
-      <lcpc-tile name="bancadaLuz" sizes="(min-width: 760px) 33vw, 100vw" class="c4" pos="50% 40%" />
+      <div class="bento bento--below">
+        <lcpc-tile name="consertoNotebook" sizes="(min-width: 760px) 39vw, 100vw" class="c5 r2" pos="50% 30%" morph="notebook">
+          <h3><a class="tile__link" href="/conserto-de-notebook/">Assistência técnica de notebook</a></h3>
+          <p>Conserto e manutenção de notebook: troca de tela, teclado, bateria, conector de carga e dobradiças.</p>
+          <p class="tile__sub"><a href="/conserto-de-notebook/#tela">Tela</a> <a href="/conserto-de-notebook/#teclado">Teclado</a> <a href="/conserto-de-notebook/#bateria">Bateria</a> <a href="/conserto-de-notebook/#carregamento">Carregamento</a></p>
+        </lcpc-tile>
+        <lcpc-tile name="videoGabinete" sizes="(min-width: 760px) 55vw, 100vw" class="c7" pos="50% 55%" morph="computador">
+          <h3><a class="tile__link" href="/conserto-de-computador/">Assistência técnica de computador e all-in-one</a></h3>
+          <p>Não liga, liga sem vídeo, trava ou reinicia: o diagnóstico encontra a peça com defeito.</p>
+          <p class="tile__sub"><a href="/conserto-de-computador/#nao-liga">Não liga</a> <a href="/conserto-de-computador/#sem-video">Sem vídeo</a> <a href="/conserto-de-computador/#trava">Trava</a> <a href="/conserto-de-computador/#reinicia">Reinicia</a></p>
+        </lcpc-tile>
+        <lcpc-tile name="gabineteInterior" sizes="(min-width: 760px) 55vw, 100vw" class="c7" pos="50% 40%" morph="pcgamer">
+          <h3><a class="tile__link" href="/pc-gamer/">PC gamer: assistência técnica e montagem</a></h3>
+          <p>Montagem de PC gamer desktop, upgrade de peças e diagnóstico de aquecimento, ruído e travamentos.</p>
+          <p class="tile__sub"><a href="/pc-gamer/#montar">Montar um PC</a> <a href="/pc-gamer/#upgrade">Fazer upgrade</a> <a href="/pc-gamer/#diagnostico">Diagnosticar</a></p>
+        </lcpc-tile>
+      </div>
+      <nav class="related" aria-label="Outros serviços do catálogo">
+        <p class="index-label">Também no catálogo</p>
+        <ul class="index-chips">
+          <li><a href="/servicos/#diagnostico">Diagnóstico técnico</a></li>
+          <li><a href="/servicos/#limpeza">Limpeza e manutenção</a></li>
+          <li><a href="/servicos/#montagem-upgrade">Montagem e upgrade</a></li>
+          <li><a href="/servicos/#formatacao">Formatação e sistemas</a></li>
+          <li><a href="/servicos/#virus">Remoção de vírus</a></li>
+          <li><a href="/servicos/">Todos os serviços</a></li>
+        </ul>
+      </nav>
     </div>
   </section>
 
   <lcpc-trace variant="1" pulse />
 
-  <section class="band band--raised" aria-labelledby="sintomas">
+  <!-- 3. Seletor de problemas -->
+  <section class="band band--raised" aria-labelledby="sintomas-titulo" id="sintomas">
     <div class="wrap">
       <div class="head">
-        <h2 id="sintomas">O que está acontecendo com seu equipamento?</h2>
+        <h2 id="sintomas-titulo">O que está acontecendo com seu equipamento?</h2>
         <p>Escolha o sintoma. Você vê o que costuma ser avaliado, o que enviar e já abre o WhatsApp com a mensagem pronta para o seu caso.</p>
       </div>
       <lcpc-symptoms set="geral" location="seletor_sintomas" />
     </div>
   </section>
 
+  <!-- 4. Como funciona o atendimento (os passos também saem como HowTo no JSON-LD) -->
+  <section class="band" aria-labelledby="como-funciona-titulo" id="como-funciona">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="como-funciona-titulo">Como funciona o atendimento</h2>
+        <p>Da primeira mensagem ao orçamento. Valores e prazos dependem do defeito e das peças e não são publicados.</p>
+      </div>
+      <lcpc-steps set="atendimento" />
+      <div class="actions">
+        <lcpc-whatsapp context="diagnostico" location="como_funciona" variant="ghost">Pedir diagnóstico no WhatsApp</lcpc-whatsapp>
+      </div>
+    </div>
+  </section>
+
   <lcpc-trace variant="2" />
 
-  <section class="band band--navy" aria-labelledby="raio-x">
+  <!-- 5. Conheça nosso trabalho -->
+  <section class="band band--raised" aria-labelledby="trabalho-titulo" id="trabalho">
     <div class="wrap">
       <div class="head">
-        <h2 id="raio-x">Raio-x de um gabinete de PC gamer</h2>
-        <p>Cada ponto marcado na foto de um PC real leva ao serviço do catálogo que cuida daquele componente.</p>
+        <h2 id="trabalho-titulo">Conheça nosso trabalho</h2>
+        <p>Fotos reais da bancada, das ferramentas e de equipamentos abertos, como são no dia a dia. <a class="text-link" href="/sobre/">Ver mais registros de bancada</a></p>
       </div>
-      <lcpc-xray />
-    </div>
-  </section>
-
-  <section class="band" aria-labelledby="servicos">
-    <div class="wrap">
-      <div class="head">
-        <h2 id="servicos">Serviços para cada tipo de equipamento</h2>
-        <p>Comece pelo equipamento. Cada página mostra o que é avaliado e o que enviar no pedido de orçamento.</p>
-      </div>
-      <div class="bento">
-        <lcpc-tile name="gabineteInterior" sizes="(min-width: 760px) 58vw, 100vw" class="c7 r2" pos="50% 40%">
-          <h3><a class="tile__link" href="/pc-gamer/">PC gamer desktop: montar, melhorar ou diagnosticar</a></h3>
-          <p>Você informa jogos, resolução e orçamento, ou descreve o problema: aquecimento, ruído, travamentos, desligamentos ou falta de vídeo.</p>
-          <p class="tile__sub"><a href="/pc-gamer/#montar">Montar um PC</a> <a href="/pc-gamer/#upgrade">Melhorar o PC atual</a> <a href="/pc-gamer/#diagnostico">Diagnosticar um problema</a></p>
-        </lcpc-tile>
-        <lcpc-tile name="consertoNotebook" sizes="(min-width: 760px) 40vw, 100vw" class="c5" pos="50% 30%">
-          <h3><a class="tile__link" href="/conserto-de-notebook/">Conserto de notebook</a></h3>
-          <p>Tela, teclado, bateria, carregamento, dobradiça e superaquecimento.</p>
-        </lcpc-tile>
-        <lcpc-tile name="videoGabinete" sizes="(min-width: 760px) 40vw, 100vw" class="c5" pos="50% 55%">
-          <h3><a class="tile__link" href="/conserto-de-computador/">Conserto de computador e all-in-one</a></h3>
-          <p>Não liga, liga sem vídeo, trava ou reinicia: o diagnóstico acha a peça.</p>
-        </lcpc-tile>
-        <article class="tile tile--text tile--navy c3">
-          <h3><a class="tile__link" href="/servicos/#diagnostico">Diagnóstico técnico</a></h3>
-          <p>Testes de memória, HD, SSD, fonte, bateria e placa de vídeo, com laudo e orçamento de reparo.</p>
-        </article>
-        <article class="tile tile--text c3">
-          <h3><a class="tile__link" href="/servicos/#limpeza">Limpeza e manutenção</a></h3>
-          <p>Poeira, pasta térmica e fluxo de ar, com testes de temperatura no fim.</p>
-        </article>
-        <article class="tile tile--text tile--blue c3">
-          <h3><a class="tile__link" href="/servicos/#formatacao">Formatação e vírus</a></h3>
-          <p>Sistema, drivers, programas e remoção de vírus.</p>
-        </article>
-        <article class="tile tile--text tile--accent c3">
-          <h3><a class="tile__link" href="/servicos/">Todos os serviços</a></h3>
-          <p>O catálogo completo, com os serviços complementares.</p>
-        </article>
+      <div class="bento bento--gallery">
+        <lcpc-tile name="bancadaLuz" sizes="(max-width: 759px) 100vw, (min-width: 760px) 39vw, 100vw" class="c5 r2" pos="50% 40%" />
+        <lcpc-tile name="bancadaFerramentas" sizes="(max-width: 759px) 50vw, (min-width: 760px) 31vw, 100vw" class="c4" pos="50% 60%" />
+        <lcpc-tile name="placaMae" sizes="(max-width: 759px) 50vw, (min-width: 760px) 23vw, 100vw" class="c3" pos="40% 50%" />
+        <lcpc-tile name="bancadaNotebookAberto" sizes="(max-width: 759px) 50vw, (min-width: 760px) 31vw, 100vw" class="c4" pos="50% 60%" />
+        <lcpc-tile name="bancadaPositivo" sizes="(max-width: 759px) 50vw, (min-width: 760px) 23vw, 100vw" class="c3" pos="50% 60%" />
       </div>
     </div>
   </section>
 
-  <lcpc-trace variant="3" />
-
-  <section class="band band--raised" aria-labelledby="bancada">
+  <!-- 6. Apresentação de Luis -->
+  <section class="band" aria-labelledby="quem-cuida-titulo" id="quem-cuida">
     <div class="wrap bento">
-      <div class="tile tile--text c4">
-        <h2 id="bancada">Na bancada</h2>
+      <lcpc-tile name="luisCarlos" sizes="(min-width: 760px) 31vw, 100vw" class="c4 tile--portrait" pos="50% 58%" />
+      <div class="tile tile--text c8">
+        <h2 id="quem-cuida-titulo">Quem cuida do seu equipamento</h2>
         <p>
-          Um diagnóstico sério passa por abrir o equipamento, olhar placa, conectores e ventoinha e testar as peças. Estas fotos mostram esse trabalho e o ambiente real da LCPC Gaming.
+          <lcpc-business field="owner.name" /> é o proprietário da LCPC Gaming e o responsável pelos serviços. Ele atende notebooks e computadores e amplia o trabalho com montagem, upgrade e manutenção de desktops gamer.
         </p>
-        <p><a class="text-link" href="/sobre/">Ver mais registros de bancada</a></p>
-      </div>
-      <lcpc-tile name="bancadaFerramentas" sizes="(min-width: 760px) 40vw, 100vw" class="c5" pos="50% 60%" />
-      <lcpc-tile name="placaMae" sizes="(min-width: 760px) 30vw, 100vw" class="c3 r2" pos="40% 50%" />
-      <lcpc-tile name="bancadaNotebookAberto" sizes="(min-width: 760px) 33vw, 100vw" class="c4" pos="50% 60%" />
-      <lcpc-tile name="bancadaPositivo" sizes="(min-width: 760px) 40vw, 100vw" class="c5" pos="50% 60%" />
-    </div>
-  </section>
-
-  <section class="band" aria-labelledby="quem-cuida">
-    <div class="wrap bento">
-      <lcpc-tile name="luisCarlos" sizes="(min-width: 760px) 40vw, 100vw" class="c5 r2" pos="50% 25%" />
-      <div class="tile tile--text c7">
-        <h2 id="quem-cuida">Quem cuida do seu equipamento</h2>
-        <p>
-          <lcpc-business field="owner.name" /> é o proprietário da LCPC Gaming e o responsável pelos serviços. Ele atende computadores e notebooks e agora amplia o trabalho com montagem, upgrade e manutenção de desktops gamer.
-        </p>
-        <p><a class="text-link" href="/sobre/">Conhecer a LCPC Gaming</a></p>
-      </div>
-      <div class="tile tile--text tile--navy c7">
-        <h3>Como o orçamento começa</h3>
-        <ol class="steps">
-          <li><strong>Você escreve</strong> o modelo do equipamento e o que está acontecendo.</li>
-          <li><strong>O diagnóstico testa</strong> as peças e aponta a causa.</li>
-          <li><strong>O laudo traz</strong> o orçamento de reparo.</li>
-        </ol>
+        <p>Para falar sobre o seu equipamento, envie o modelo e o que está acontecendo pelo WhatsApp.</p>
+        <div class="actions">
+          <lcpc-whatsapp context="geral" location="quem_cuida" variant="ghost">Falar pelo WhatsApp</lcpc-whatsapp>
+          <a class="btn btn--ghost" href="/sobre/">Conhecer a LCPC Gaming</a>
+        </div>
       </div>
     </div>
   </section>
 
-  <lcpc-faq set="home" title="Perguntas frequentes" lead="Equipamentos atendidos, o que informar no pedido e como funcionam retirada, entrega e orçamento." photo="bancada" photo-pos="50% 40%" />
+  <!-- 7. Avaliações reais: omitidas. Só entram com material verificável (hoje não existe). -->
 
-  <lcpc-location context="geral" location="localizacao" title="Onde fica a LCPC Gaming"
-    intro="Na Vila Marari, bairro da Zona Sul de São Paulo (CEP 04402). Confirme horários, retirada e entrega pelo WhatsApp antes de ir." />
+  <!-- 8. Perguntas frequentes -->
+  <lcpc-faq set="home" title="Perguntas frequentes" lead="Equipamentos atendidos, o que informar no pedido, montagem de PC gamer e como funcionam retirada, entrega e orçamento." />
 
+  <!-- 9. Localização e condições de atendimento -->
+  <lcpc-location context="geral" location="localizacao" title="Localização e condições de atendimento"
+    intro="Na Vila Marari, bairro da Zona Sul de São Paulo (CEP 04402). Horários, retirada, entrega e atendimento fora da bancada dependem de consulta de condições e disponibilidade: confirme pelo WhatsApp antes de ir." />
+
+  <!-- 10. Chamada final (o rodapé vem do layout) -->
   <lcpc-cta-band
     title="Conte o que está acontecendo com o seu equipamento"
     text="Informe o modelo e o sintoma pelo WhatsApp e peça o orçamento."

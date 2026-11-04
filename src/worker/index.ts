@@ -2,7 +2,9 @@
  * Worker do site. Os arquivos estáticos (dist/) são servidos pelo Workers Static Assets; este Worker roda antes
  * (assets.run_worker_first) e só acrescenta o que o servidor de arquivos não faz:
  *   - cabeçalhos de segurança;
- *   - cache longo e imutável em /assets/* (nomes com hash) e revalidação no HTML;
+ *   - cache por tipo de arquivo: imutável em /assets/* (nomes com hash), um mês em /media/*, um dia em ícones e imagens
+ *     sociais, uma hora nos arquivos de rastreamento e revalidação no HTML;
+ *   - cabeçalho Link (preload da fonte do título e da foto de abertura) nas páginas, que a Cloudflare transforma em Early Hints;
  *   - X-Robots-Tag noindex fora do domínio de produção (PRODUCTION_HOST), como *.workers.dev e previews;
  *   - requisições Range (206/416) para o vídeo, que o iOS Safari exige, mesmo que a plataforma devolva 200.
  */
@@ -16,6 +18,26 @@ const SECURITY_HEADERS: Record<string, string> = {
 const IMMUTABLE = 'public, max-age=31536000, immutable';
 const REVALIDATE = 'public, max-age=0, must-revalidate';
 
+/** Cache por caminho (o primeiro que combinar vale). Só respostas 200 recebem cabeçalho de cache. */
+const CACHE_RULES: [RegExp, string][] = [
+  [/^\/assets\//, IMMUTABLE],
+  // Vídeo e capa não têm hash no nome: um mês, com revalidação em segundo plano na semana seguinte.
+  [/^\/media\//, 'public, max-age=2592000, stale-while-revalidate=604800'],
+  [/^\/(og\/|favicon\.png|apple-touch-icon\.png|icon-\d+\.png|og-lcpc-gaming\.jpg|site\.webmanifest)/, 'public, max-age=86400, stale-while-revalidate=604800'],
+  [/^\/(robots\.txt|sitemap\.xml|llms(-full)?\.txt|\.well-known\/)/, 'public, max-age=3600'],
+];
+
+/** Arquivo interno do build (caminho de página -> valor do cabeçalho Link). Não é servido ao público. */
+const LINKS_FILE = '/_links.json';
+let linksCache: Promise<Record<string, string>> | undefined;
+
+function pageLinks(env: Env, url: URL): Promise<Record<string, string>> {
+  linksCache ??= env.ASSETS.fetch(new Request(new URL(LINKS_FILE, url)))
+    .then((response) => (response.ok ? (response.json() as Promise<Record<string, string>>) : {}))
+    .catch(() => ({}));
+  return linksCache;
+}
+
 export default {
   async fetch(request, env): Promise<Response> {
     const url = new URL(request.url);
@@ -24,6 +46,8 @@ export default {
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return new Response('Método não permitido', { status: 405, headers: { Allow: 'GET, HEAD', ...SECURITY_HEADERS } });
     }
+
+    if (url.pathname === LINKS_FILE) return new Response('Não encontrado', { status: 404, headers: SECURITY_HEADERS });
 
     let response = await env.ASSETS.fetch(request);
     if (request.method === 'GET') response = await applyRange(request, response);
@@ -36,10 +60,13 @@ export default {
     if (url.protocol === 'https:') headers.set('Strict-Transport-Security', 'max-age=31536000');
 
     if (response.ok) {
-      if (url.pathname.startsWith('/assets/')) {
-        headers.set('Cache-Control', IMMUTABLE);
+      const rule = CACHE_RULES.find(([pattern]) => pattern.test(url.pathname));
+      if (rule) {
+        headers.set('Cache-Control', rule[1]);
       } else if ((headers.get('Content-Type') ?? '').startsWith('text/html')) {
         headers.set('Cache-Control', REVALIDATE);
+        const link = (await pageLinks(env, url))[url.pathname];
+        if (link) headers.set('Link', link);
       }
     }
 

@@ -9,6 +9,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import sharp from 'sharp';
+import { findOffPalette, htmlColorSpots } from './lib/palette-check.mjs';
 import { catalogItems, categories } from '../src/data/catalog.ts';
 
 const DIST = 'dist';
@@ -125,6 +126,12 @@ const forbidden = [
   [/grátis|gratuit[oa]/i, 'oferta gratuita não confirmada'],
   [/\b\d+\s*(horas|dias|anos) de\b|24 ?h\b/i, 'prazo ou tempo de casa não confirmado'],
   [/aggregateRating|openingHours|priceRange|"review"/i, 'dado estruturado não confirmado'],
+  // Revisão 2 (brief): frase banida, bairro errado, equipe inventada, "perto de mim" artificial, condição de autorizada e marcas como alvo.
+  [/também monta/i, 'frase banida "também monta"'],
+  [/vila mariana/i, 'Vila Mariana (o bairro é Vila Marari)'],
+  [/nossa equipe|nosso time|nossos técnicos/i, 'equipe inexistente'],
+  [/perto de mim/i, '"perto de mim" artificial'],
+  [/assistência autorizada|autorizada d[aeo]|dell|lenovo|hp|asus|acer|samsung/i, 'marca ou condição de autorizada sem confirmação'],
 ];
 for (const page of commercial) {
   const scan = decode(`${page.html.replaceAll('apple-touch-icon', '')}`);
@@ -201,7 +208,9 @@ const titles = new Map();
 const descriptions = new Map();
 const h1Expected = {
   '/': 'Assistência técnica de computadores e notebooks na Vila Marari',
-  '/pc-gamer/': 'Montagem, upgrade e manutenção de PC gamer em São Paulo',
+  '/conserto-de-notebook/': 'Assistência técnica de notebooks na Vila Marari',
+  '/conserto-de-computador/': 'Assistência técnica de computadores na Vila Marari',
+  '/pc-gamer/': 'Assistência técnica e montagem de PC gamer na Vila Marari',
 };
 for (const page of commercial) {
   const title = decode(page.html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '');
@@ -210,8 +219,10 @@ for (const page of commercial) {
   check(Boolean(description) && !descriptions.has(description), `${page.route}: description ausente ou repetida`);
   titles.set(title, page.route);
   descriptions.set(description, page.route);
-  if (title.length < 50 || title.length > 60) warnings.push(`${page.route}: title com ${title.length} caracteres (alvo: 50 a 60)`);
-  if (description.length < 140 || description.length > 160) warnings.push(`${page.route}: description com ${description.length} caracteres (alvo: 140 a 160)`);
+  // Revisão 2: virou falha (antes era aviso). Exceção explícita: o título da home é fixado pelo brief ("Assistência Técnica na Vila Marari | LCPC Gaming", 48 caracteres).
+  if (page.route === '/') check(title === 'Assistência Técnica na Vila Marari | LCPC Gaming', `/: title deve ser exatamente o do brief, está "${title}"`);
+  else if (page.route !== '/404') check(title.length >= 50 && title.length <= 60, `${page.route}: title com ${title.length} caracteres (alvo: 50 a 60)`);
+  check(description.length >= 140 && description.length <= 160, `${page.route}: description com ${description.length} caracteres (alvo: 140 a 160)`);
 
   const h1s = [...page.html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/g)].map((match) => decode(match[1].replace(/<[^>]+>/g, '').trim()));
   check(h1s.length === 1, `${page.route}: ${h1s.length} H1`);
@@ -331,7 +342,9 @@ for (const page of commercial) {
   cssSizes.set(page.route, css.length);
   for (const block of css.matchAll(/@keyframes[^{]+\{((?:[^{}]|\{[^{}]*\})*)\}/g)) {
     const props = [...block[1].matchAll(/([a-z-]+)\s*:/g)].map((m) => m[1]).filter((p) => !['from', 'to'].includes(p));
-    check(props.every((p) => ['transform', 'opacity'].includes(p)), `${page.route}: @keyframes anima ${props.join(', ')} (só transform e opacity)`);
+    // Revisão 2: `filter` é permitido só nos dois keyframes do conceito de cor (boot da abertura e power-on das fotos), que o Chrome anima no compositor.
+    const colorEvent = /^(boot|power-on)$/.test(block[0].match(/@keyframes\s+([\w-]+)/)?.[1] ?? '');
+    check(props.every((p) => ['transform', 'opacity'].includes(p) || (colorEvent && p === 'filter')), `${page.route}: @keyframes anima ${props.join(', ')} (só transform e opacity; filter só em boot e power-on)`);
   }
 
   /* Indexação */
@@ -350,15 +363,36 @@ for (const page of commercial) {
 const home = pages.find((page) => page.route === '/');
 check(/<img[^>]*fetchpriority="high"/.test(home?.html ?? ''), 'Home: foto de abertura sem prioridade');
 check(!/<video/.test(home?.html ?? ''), 'Home deve ter imagem estática, sem vídeo');
-check((home?.html ?? '').includes('Pedir orçamento no WhatsApp'), 'Home: CTA principal ausente');
-check((home?.html ?? '').includes('Ver serviços para PC gamer'), 'Home: CTA de PC gamer ausente');
+// Revisão 2: botões do brief na abertura (o secundário rola até os serviços da própria home).
+const heroHtml = (home?.html ?? '').match(/<section class="hero">[\s\S]*?<\/section>/)?.[0] ?? '';
+check(/<a[^>]*data-wa-cta[^>]*><svg[\s\S]*?<span>Solicitar orçamento no WhatsApp<\/span>/.test(heroHtml), 'Home: botão principal "Solicitar orçamento no WhatsApp" ausente na abertura');
+check(/<a class="btn btn--ghost" href="#servicos">Conhecer os serviços<\/a>/.test(heroHtml), 'Home: botão secundário "Conhecer os serviços" ausente na abertura');
+check(!/Luis/.test(heroHtml.match(/<p class="lead">[\s\S]*?<\/p>/)?.[0] ?? 'Luis'), 'Home: o nome de Luis não pode estar na descrição principal');
+check((heroHtml.match(/<p class="lead">([\s\S]*?)<\/p>/)?.[1] ?? '').trim() === 'Conserto, manutenção e upgrades para computadores e notebooks. Montagem e assistência técnica para PCs gamer, na Zona Sul de São Paulo.', 'Home: descrição da abertura diferente do brief');
+// Nenhum endereço completo antes do H1 e nenhuma linha de lugar antes dele.
+const beforeH1 = (home?.html ?? '').split('<h1')[0].replace(/<head>[\s\S]*?<\/head>/, '');
+check(!/Rua Maria Pais de Barros|CEP 04402/.test(beforeH1), 'Home: endereço completo antes do H1');
+// Ordem das seções do brief. Avaliações reais ficam de fora (não há material verificável).
+const homeOrder = [...(home?.html ?? '').matchAll(/<section class="(?:hero|band[^"]*)"[^>]*?(?:id="([^"]+)")?[^>]*>/g)].map((m) => m[1]);
+const homeMain = (home?.html ?? '').match(/<main[\s\S]*<\/main>/)?.[0] ?? '';
+const positions = ['<section class="hero">', 'id="servicos"', 'id="sintomas"', 'id="como-funciona"', 'id="trabalho"', 'id="quem-cuida"', 'id="faq-titulo"', 'class="wrap loc"', 'class="cta-band"'].map((marker) => homeMain.indexOf(marker));
+check(positions.every((position, index) => position >= 0 && (index === 0 || position > positions[index - 1])), `Home: seções fora da ordem do brief (${positions.join(', ')})`);
+check(!/avalia(ç|c)(ões|ão) de clientes|depoimento|estrelas|★/i.test(homeMain), 'Home: avaliação ou depoimento sem material verificável');
+check(!/class="(ticker|xray)/.test(homeMain), 'Home: faixa em movimento ou raio-x fora da ordem do brief');
+check(/class="xray"/.test(pages.find((page) => page.route === '/pc-gamer/')?.html ?? ''), '/pc-gamer/: raio-x do gabinete ausente');
 
 const gamer = pages.find((page) => page.route === '/pc-gamer/');
-const video = tags(gamer?.html ?? '', 'video')[0] ?? '';
-check(/preload="none"/.test(video), 'Vídeo não carrega sob demanda');
-check(/\scontrols/.test(video), 'Vídeo sem controles');
-check(!/\sautoplay/.test(video), 'Vídeo com autoplay');
-check(Boolean(attr(video, 'poster')), 'Vídeo sem capa');
+// Revisão 2: capa em imagem sob demanda e <video> só no <noscript>; o JavaScript cria o player depois do clique.
+const gamerHtml = gamer?.html ?? '';
+const outsideNoscript = gamerHtml.replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
+check(!/<video\b/.test(outsideNoscript), '/pc-gamer/: <video> no HTML fora do <noscript> (deveria nascer só depois do clique)');
+check(/<noscript><video[^>]*controls[^>]*preload="none"/.test(gamerHtml), '/pc-gamer/: <noscript> sem player nativo com controles');
+check(!/autoplay/.test(gamerHtml.replace(/<script>[\s\S]*?<\/script>/g, '')), 'Vídeo com autoplay');
+const facade = gamerHtml.match(/<button class="video__facade"[\s\S]*?<\/button>/)?.[0] ?? '';
+check(/data-video-open/.test(facade) && /<img[^>]*loading="lazy"/.test(facade) && /<source type="image\/avif"/.test(facade) && /<source type="image\/webp"/.test(facade), 'Capa do vídeo sem imagem AVIF/WebP sob demanda');
+check(!/video-pc-gamer-capa\.jpg/.test(outsideNoscript.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '')), 'Capa JPEG do vídeo referenciada fora do <noscript> e do JSON-LD');
+check(/data-sources="[^"]*\.webm\|video\/webm[^"]*;[^"]*\.mp4\|video\/mp4"/.test(gamerHtml), 'Vídeo sem WebM (AV1) antes do MP4 de reserva');
+check(existsSync(join(DIST, 'media/video-pc-gamer.webm')) && statSync(join(DIST, 'media/video-pc-gamer.webm')).size < statSync(join(DIST, 'media/video-pc-gamer.mp4')).size, 'WebM ausente ou maior que o MP4');
 
 const firstNav = (home?.html ?? '').match(/<nav class="nav-desktop"[\s\S]*?<a href="([^"]+)"/)?.[1];
 check(firstNav === '/pc-gamer/', `Primeiro item do menu é ${firstNav}`);
@@ -373,6 +407,38 @@ if (production) {
   check(!/<loc>/.test(sitemap), 'Sitemap de preview não pode listar URLs');
 }
 
+/* 7b. Paleta (revisão 2): grafite neutro e uma só cor de interface, o laranja da logo. Logo e fotos ficam de fora. */
+const authored = [
+  ...['src/styles/global.css', 'src/styles/fonts.css', ...readdirSync('src/styles/parts').map((name) => `src/styles/parts/${name}`)],
+  'scripts/lib/components.ts',
+  'scripts/lib/layout.ts',
+  'scripts/lib/og.ts',
+  'src/lib/schema.ts',
+  ...readdirSync('src/pages', { recursive: true }).filter((name) => name.endsWith('.html')).map((name) => `src/pages/${name}`),
+];
+for (const file of authored) {
+  const hits = findOffPalette(readFileSync(file, 'utf8'));
+  check(hits.length === 0, `${file}: cor fora da família do laranja (${[...new Set(hits)].join(', ')})`);
+}
+for (const page of pages) {
+  const hits = findOffPalette(htmlColorSpots(page.html));
+  check(hits.length === 0, `${page.route}: cor fora da família do laranja no HTML final (${[...new Set(hits)].join(', ')})`);
+}
+check(findOffPalette('color:#2fa2ff;fill:#0060f0;stroke:rgb(13,26,44)').length === 3, 'Verificação de paleta não reconhece azul (autoteste)');
+check(findOffPalette('color:#fa6a0a;border:1px solid #4b5159;fill:rgba(250,106,10,.2)').length === 0, 'Verificação de paleta reprova laranja ou grafite (autoteste)');
+
+/* 7c. Espaçamento (revisão 2): margin, padding e gap só com a escala --s-1 a --s-8 (ou 0, auto, calc/clamp feitos dela). */
+const spacingCss = ['src/styles/global.css', ...readdirSync('src/styles/parts').map((name) => `src/styles/parts/${name}`)];
+for (const file of spacingCss) {
+  const css = readFileSync(file, 'utf8');
+  for (const m of css.matchAll(/^\s*((?:margin|padding|gap|row-gap|column-gap)(?:-(?:top|bottom|left|right|inline|block)(?:-(?:start|end))?)?)\s*:\s*([^;]+);/gm)) {
+    const values = m[2].replace(/var\(--s-\d\)/g, '').replace(/\bcalc\(|\bclamp\(/g, '');
+    // Sobra algum número com unidade que não veio da escala? O ajuste de 0,875rem do marcador do raio-x é a única isenção.
+    const loose = (values.match(/-?\d*\.?\d+(?:rem|px|em|%)/g) ?? []).filter((token) => !/^-?0\.875rem$/.test(token) && !/^0(?:rem|px)$/.test(token));
+    check(loose.length === 0, `${file}: ${m[1]}: ${m[2].trim()} usa valor fora da escala --s-*`);
+  }
+}
+
 /* 8. Rastreamento, GEO, ícones e regra de Apple nos arquivos */
 const crawlers = ['Googlebot', 'Bingbot', 'GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'PerplexityBot', 'Google-Extended'];
 for (const agent of crawlers) check(robotsTxt.includes(`User-agent: ${agent}`), `robots.txt sem regra explícita para ${agent}`);
@@ -384,6 +450,63 @@ for (const item of catalogItems.filter((entry) => entry.status !== 'publicado' &
   check(!llms.includes(item.source), `llms.txt cita item ${item.status}: ${item.source}`);
 }
 for (const [pattern, name] of forbidden) check(!decode(llms).match(pattern), `llms.txt: termo proibido (${name})`);
+/* 8b. Revisão 2: arquivos de rastreamento e GEO ampliados */
+for (const agent of ['Applebot', 'Applebot-Extended', 'Claude-SearchBot', 'Perplexity-User', 'Googlebot-Image']) check(robotsTxt.includes(`User-agent: ${agent}`), `robots.txt sem regra explícita para ${agent}`);
+check(!/^\s*Disallow:\s*\S/m.test(robotsTxt), 'robots.txt tem Disallow (o noindex precisa ser lido)');
+check(!production ? /Ambiente de teste/.test(robotsTxt) : !/Ambiente de teste/.test(robotsTxt), 'comentário do robots.txt não corresponde ao modo do build');
+const llmsFull = readFileSync(join(DIST, 'llms-full.txt'), 'utf8');
+check(llmsFull.includes('Rua Maria Pais de Barros, 329') && llmsFull.includes('5511944700732'), 'llms-full.txt sem endereço ou WhatsApp');
+for (const item of catalogItems.filter((entry) => entry.status === 'publicado' || entry.status === 'publicado-adaptado')) check(llmsFull.includes(item.label ?? item.source), `llms-full.txt sem o item publicado: ${item.label ?? item.source}`);
+for (const item of catalogItems.filter((entry) => entry.status !== 'publicado' && entry.status !== 'publicado-adaptado')) check(!llmsFull.includes(item.source), `llms-full.txt cita item ${item.status}: ${item.source}`);
+for (const [pattern, name] of forbidden) check(!decode(llmsFull).match(pattern), `llms-full.txt: termo proibido (${name})`);
+check(!/citad[oa]s? (por|em)|garant\w+ (de )?cita/i.test(`${llms} ${llmsFull}`), 'llms.txt promete citação');
+for (const file of [llms, llmsFull]) {
+  const links = [...file.matchAll(/\]\(([^)\s]+)\)/g)].map((m) => m[1]);
+  for (const link of links) {
+    if (/^https?:\/\/(wa\.me|www\.google)/.test(link)) continue;
+    const path = link.replace(/^https?:\/\/[^/]+/, '').split('#')[0];
+    check(existsSync(join(DIST, path.endsWith('/') ? `${path}index.html` : path)), `llms: link inexistente ${link}`);
+    if (production) check(link.startsWith('https://www.dominio-de-teste.example') || link.startsWith('https://wa.me'), `llms: link relativo em produção: ${link}`);
+    else check(link.startsWith('/') || link.startsWith('https://wa.me'), `llms: link absoluto em preview: ${link}`);
+  }
+}
+const security = readFileSync(join(DIST, '.well-known/security.txt'), 'utf8');
+check(/^Contact: mailto:contato@lcpcgaming\.com$/m.test(security) && /^Expires: \d{4}-\d\d-\d\dT[\d:]+Z$/m.test(security) && new Date(security.match(/^Expires: (.*)$/m)?.[1] ?? 0) > new Date(), 'security.txt inválido (RFC 9116)');
+if (production) {
+  check(sitemap.includes('xmlns:video=') && /<video:video>[\s\S]*<video:content_loc>[^<]*video-pc-gamer\.mp4/.test(sitemap) && (sitemap.match(/<video:video>/g) ?? []).length === 1, 'sitemap sem a entrada de vídeo em /pc-gamer/');
+}
+// Nada de materiais/ no dist, e nada de opentype.js no projeto.
+const distFiles = readdirSync(DIST, { recursive: true }).map(String);
+check(!distFiles.some((file) => /materiais|referencias|keyword|brief|\.xlsx$|\.md$|nao-publicar/i.test(file)), 'dist contém arquivo de materiais/ ou referência interna');
+check(!distFiles.some((file) => /\.(map|py|woff)$/.test(file)) && !existsSync(join(DIST, 'fonts')), 'dist contém arquivo de desenvolvimento');
+check(!JSON.parse(readFileSync('package.json', 'utf8')).devDependencies?.['opentype.js'], 'opentype.js continua no package.json');
+// Chave pública do Worker: _links.json existe no dist (interno) e cada rota comercial tem preload da fonte.
+const linksJson = JSON.parse(readFileSync(join(DIST, '_links.json'), 'utf8'));
+for (const route of expectedRoutes) check(/rel=preload; as=font/.test(linksJson[route] ?? ''), `${route}: sem cabeçalho Link de preload da fonte`);
+// Fontes: só os arquivos reduzidos, com fonte de reserva de métricas ajustadas.
+const fontFiles = distFiles.filter((file) => file.endsWith('.woff2'));
+check(fontFiles.length === 3 && fontFiles.reduce((total, file) => total + statSync(join(DIST, file)).size, 0) < 40 * 1024, `fontes: ${fontFiles.length} arquivos, esperado 3 e menos de 40 KB no total`);
+for (const page of commercial) {
+  check(/font-family:"?Saira Condensed Reserva/.test(page.html) || /Saira Condensed Reserva/.test(page.html), `${page.route}: sem fonte de reserva com métricas ajustadas`);
+  check((page.html.match(/rel="preload"[^>]*as="font"/g) ?? []).length === 1, `${page.route}: deve pré-carregar só uma fonte (a do título)`);
+  check(/<script type="speculationrules">/.test(page.html), `${page.route}: sem Speculation Rules`);
+  check(/@view-transition\{navigation:auto\}/.test(page.html), `${page.route}: sem @view-transition`);
+  const data = jsonLd(page.html);
+  const pageNode = data.find((entry) => ['WebPage', 'AboutPage', 'ContactPage', 'CollectionPage'].includes(entry['@type']));
+  check(pageNode?.speakable?.['@type'] === 'SpeakableSpecification', `${page.route}: sem speakable`);
+  const place = data.find((entry) => entry['@type'] === 'LocalBusiness')?.containedInPlace;
+  check(place?.name === 'Zona Sul de São Paulo' && place.containedInPlace?.name === 'São Paulo', `${page.route}: sem containedInPlace`);
+  const howto = data.find((entry) => entry['@type'] === 'HowTo');
+  if (page.route === '/') {
+    const text = visibleText(page.html);
+    check(Boolean(howto) && howto.step.length >= 3 && howto.step.every((step) => text.includes(step.name) && text.includes(step.text)), '/: HowTo diferente da seção "Como funciona" visível');
+  } else check(!howto, `${page.route}: HowTo sem seção visível correspondente`);
+}
+// Cada página comercial deixa a mensagem e o WhatsApp à vista logo na abertura (H1 e botão antes de qualquer outra seção).
+for (const route of ['/', '/conserto-de-notebook/', '/conserto-de-computador/', '/pc-gamer/']) {
+  const first = pages.find((page) => page.route === route)?.html.match(/<main[^>]*>([\s\S]*?)<\/section>/)?.[1] ?? '';
+  check(/<h1/.test(first) && /data-wa-cta/.test(first) && /Solicitar orçamento no WhatsApp/.test(first), `${route}: abertura sem H1 e botão "Solicitar orçamento no WhatsApp"`);
+}
 const manifest = JSON.parse(readFileSync(join(DIST, 'site.webmanifest'), 'utf8'));
 check(Boolean(manifest.name) && manifest.short_name === 'LCPC Gaming' && manifest.lang === 'pt-BR' && manifest.start_url === '/', 'site.webmanifest incompleto');
 for (const icon of manifest.icons ?? []) check(existsSync(join(DIST, icon.src)), `ícone do manifesto ausente: ${icon.src}`);

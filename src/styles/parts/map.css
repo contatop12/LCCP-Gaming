@@ -2,10 +2,10 @@
 .map {
   position: relative;
   height: 100%;
-  min-height: 22rem;
+  min-height: 16rem;
   overflow: hidden;
-  background: var(--navy-2);
-  clip-path: polygon(0 0, calc(100% - 1.5rem) 0, 100% 1.5rem, 100% 100%, 0 100%);
+  background: var(--graphite-3);
+  clip-path: polygon(0 0, calc(100% - var(--s-5)) 0, 100% var(--s-5), 100% 100%, 0 100%);
 }
 
 .map__art {
@@ -16,7 +16,7 @@
 }
 
 .m-a {
-  stroke: var(--blue);
+  stroke: var(--control);
   opacity: 0.6;
 }
 
@@ -31,8 +31,8 @@
 }
 
 .m-pad circle {
-  fill: var(--navy-2);
-  stroke: var(--blue);
+  fill: var(--graphite-3);
+  stroke: var(--control);
   stroke-width: 2;
 }
 
@@ -50,10 +50,10 @@
 
 .map__box {
   position: absolute;
-  inset: auto 1rem 1rem 1rem;
+  inset: auto var(--s-4) var(--s-4) var(--s-4);
   max-width: 28rem;
-  padding: 1rem 1.1rem 1.2rem;
-  background: rgba(13, 26, 44, 0.94);
+  padding: var(--s-4);
+  background: rgba(21, 23, 26, 0.94);
   border-left: 4px solid var(--accent);
 }
 
@@ -70,7 +70,7 @@
 }
 
 .map__note {
-  margin-top: 0.75rem;
+  margin-top: var(--s-3);
   color: var(--muted);
   font-size: 0.9375rem;
 }
@@ -86,4 +86,10 @@
 .map--loaded .map__art,
 .map--loaded .map__box {
   display: none;
+}
+
+@media (min-width: 900px) {
+  .map {
+    min-height: 22rem;
+  }
 }

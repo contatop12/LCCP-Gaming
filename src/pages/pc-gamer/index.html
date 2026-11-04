@@ -2,42 +2,36 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <title>Montagem e upgrade de PC gamer em São Paulo | LCPC Gaming</title>
-  <meta name="description" content="Monte um PC gamer, melhore o atual ou descubra a causa de travamentos e aquecimento. LCPC Gaming, na Vila Marari, em São Paulo. Orçamento pelo WhatsApp.">
+  <title>Assistência Técnica e Montagem de PC Gamer | LCPC Gaming</title>
+  <meta name="description" content="Montagem de PC gamer, upgrade e assistência técnica para aquecimento, ruído e travamentos. LCPC Gaming, na Vila Marari, em São Paulo. Orçamento pelo WhatsApp.">
   <!-- Ajustes desta página (lidos pelo build e removidos do HTML final). -->
   <meta name="lcpc:context" content="pcGamer">
   <meta name="lcpc:mobile-cta" content="Pedir orçamento de PC gamer">
   <meta name="lcpc:faq" content="pcGamer">
   <meta name="lcpc:breadcrumb" content="PC Gamer">
   <meta name="lcpc:image" content="gabineteInterior">
-  <meta name="lcpc:og" content="Montagem, upgrade e manutenção de PC gamer em São Paulo">
-  <meta name="lcpc:service" content="Montagem, upgrade e manutenção de PC gamer">
-  <meta name="lcpc:service-type" content="Montagem, upgrade e manutenção de PC gamer desktop">
+  <meta name="lcpc:og" content="Assistência técnica e montagem de PC gamer na Vila Marari">
+  <meta name="lcpc:service" content="Assistência técnica e montagem de PC gamer">
+  <meta name="lcpc:service-type" content="Assistência técnica, montagem e upgrade de PC gamer desktop">
   <meta name="lcpc:service-description" content="Montagem de PC gamer, upgrade de processador, placa de vídeo, memória e armazenamento, e diagnóstico de aquecimento, ruído, travamentos, desligamentos e falta de vídeo em desktops.">
 </head>
 <body>
 <main>
 
-  <section class="phero phero--gamer">
+  <section class="phero">
     <div class="wrap phero__grid">
       <div class="phero__text">
-        <h1>Montagem, upgrade e manutenção de PC gamer em São Paulo</h1>
+        <h1>Assistência técnica e montagem de PC gamer na Vila Marari</h1>
         <p class="lead">
-          A LCPC Gaming, na Vila Marari, monta PCs gamer desktop, faz upgrades em máquinas compatíveis e diagnostica aquecimento, ruído, travamentos, desligamentos e falta de vídeo. A avaliação parte dos seus jogos, da resolução, do orçamento e das peças que você já tem.
+          Montagem de PC gamer desktop, upgrade e assistência técnica para aquecimento, ruído, travamentos, desligamentos e falta de vídeo. A avaliação parte dos seus jogos, da resolução, do orçamento e das peças que você já tem.
         </p>
         <div class="actions">
-          <lcpc-whatsapp context="pcGamer" location="hero" />
+          <lcpc-whatsapp context="pcGamer" location="hero">Solicitar orçamento no WhatsApp</lcpc-whatsapp>
           <a class="btn btn--ghost" href="#caminhos">Escolher um caminho</a>
         </div>
-        <ul class="hero__tags">
-          <li>Só desktop</li>
-          <li>Montagem</li>
-          <li>Upgrade</li>
-          <li>Diagnóstico</li>
-        </ul>
       </div>
       <div class="phero__media">
-        <lcpc-tile name="gabineteInterior" sizes="(min-width: 900px) 46vw, 100vw" widths="480,668" class="tile--wide" pos="50% 40%" priority />
+        <lcpc-tile name="gabineteInterior" sizes="(min-width: 900px) 46vw, 100vw" widths="480,668" class="tile--wide" pos="50% 40%" morph="pcgamer" priority />
         <lcpc-tile name="videoVerde" sizes="(min-width: 900px) 23vw, 50vw" widths="232,464" pos="50% 40%" />
         <lcpc-tile name="videoRosa" sizes="(min-width: 900px) 23vw, 50vw" widths="232,464" pos="50% 50%" />
       </div>
@@ -91,7 +85,7 @@
         </li>
       </ul>
       <div class="bento bento--after">
-        <div class="tile tile--text c5">
+        <div class="tile tile--text c7">
           <h3>O que a montagem pode incluir</h3>
           <ul class="ticks">
             <li>Seleção de peças conforme compatibilidade, orçamento e uso</li>
@@ -101,8 +95,7 @@
             <li>Testes de desempenho, temperatura e estabilidade sob carga</li>
           </ul>
         </div>
-        <lcpc-tile name="videoGabinete" sizes="(min-width: 760px) 30vw, 100vw" class="c4" pos="50% 50%" />
-        <div class="tile tile--text tile--accent c3">
+        <div class="tile tile--text tile--accent c5">
           <h3>Já tem as peças?</h3>
           <p>Envie a lista antes de comprar para conferir a compatibilidade.</p>
           <p><lcpc-whatsapp context="montagem" location="jornada_montar" variant="dark">Pedir orçamento de montagem</lcpc-whatsapp></p>
@@ -119,9 +112,10 @@
           Trocar uma peça só traz resultado quando ela é o que está limitando a máquina. Por isso não dá para prometer ganho de FPS antes de avaliar: o resultado depende do jogo, da resolução e do restante da configuração.
         </p>
       </div>
-      <div class="bento">
-        <lcpc-tile name="hero" sizes="(min-width: 760px) 30vw, 100vw" widths="480,800,1200" class="c4 r2" pos="45% 50%" />
-        <div class="tile tile--text tile--navy c8">
+      <!-- Raio-x: pontos sobre a foto de um gabinete real, ligados aos serviços do catálogo que cuidam de cada componente. -->
+      <lcpc-xray />
+      <div class="bento bento--below">
+        <div class="tile tile--text tile--deep c8">
           <h3>O que pode ser avaliado</h3>
           <ul class="ticks ticks--two">
             <li>Upgrade de processador, <span id="upgrade-placa-de-video">placa de vídeo</span> e fonte em desktops compatíveis</li>
@@ -131,7 +125,7 @@
             <li>Upgrade do sistema de refrigeração</li>
           </ul>
         </div>
-        <div class="tile tile--text c8">
+        <div class="tile tile--text c4">
           <h3>O que enviar</h3>
           <p>Modelo da placa-mãe, processador, placa de vídeo, memória, fonte e gabinete, além do que você quer melhorar. Se não souber algum item, informe o que tiver.</p>
           <p><lcpc-whatsapp context="upgrade" location="jornada_upgrade">Pedir avaliação de upgrade</lcpc-whatsapp></p>
@@ -140,7 +134,7 @@
     </div>
   </section>
 
-  <section id="diagnostico" class="band band--navy" aria-labelledby="diagnostico-titulo">
+  <section id="diagnostico" class="band band--deep" aria-labelledby="diagnostico-titulo">
     <div class="wrap">
       <div class="head">
         <h2 id="diagnostico-titulo">Diagnosticar um problema</h2>
@@ -156,11 +150,11 @@
 
   <section class="band" aria-labelledby="video-titulo">
     <div class="wrap video-section">
-      <!-- Player com capa e legenda de src/data/media.ts. O vídeo só baixa depois do play. -->
+      <!-- Capa leve e clicável, com legenda de src/data/media.ts. Nem o vídeo nem a capa em JPEG baixam antes do clique. -->
       <lcpc-video />
       <div class="video-section__text">
         <h2 id="video-titulo">Veja um gabinete de perto</h2>
-        <p>O vídeo só carrega quando você clica em reproduzir. Ele mostra o gabinete e a iluminação em movimento, com som. Depois de assistir, escolha o caminho que combina com o seu caso:</p>
+        <p>O vídeo só carrega quando você clica em assistir. Ele mostra o gabinete e a iluminação em movimento, com som. Depois de assistir, escolha o caminho que combina com o seu caso:</p>
         <nav class="jump jump--stack" aria-label="Caminhos do PC gamer, depois do vídeo">
           <a href="#montar"><strong>Montar um PC</strong><span>Jogos, resolução, orçamento e peças que você já tem</span></a>
           <a href="#upgrade"><strong>Melhorar o PC atual</strong><span>Processador, placa de vídeo, memória, SSD, fonte ou refrigeração</span></a>
@@ -172,11 +166,21 @@
           <lcpc-whatsapp context="manutencaoGamer" location="video" variant="text">Meu PC está com problema</lcpc-whatsapp>
         </div>
       </div>
-      <lcpc-tile name="videoRosa" sizes="(min-width: 900px) 28vw, 100vw" widths="232,464" class="video-section__photo" pos="50% 50%" />
     </div>
   </section>
 
-  <lcpc-faq set="pcGamer" title="Dúvidas sobre PC gamer" lead="Peças próprias, upgrade, FPS e desligamentos durante o jogo." photo="gabineteInterior" photo-pos="30% 60%" />
+  <lcpc-faq set="pcGamer" title="Dúvidas sobre PC gamer" lead="Peças próprias, upgrade, FPS e desligamentos durante o jogo." />
+
+  <section class="band band--raised" aria-label="Outras páginas relacionadas">
+    <div class="wrap related">
+      <p class="index-label">Veja também</p>
+      <ul class="index-chips">
+        <li><a href="/conserto-de-notebook/">Assistência técnica de notebook</a></li>
+        <li><a href="/conserto-de-computador/">Conserto de computador e all-in-one</a></li>
+        <li><a href="/servicos/#montagem-upgrade">Montagem e upgrade no catálogo</a></li>
+      </ul>
+    </div>
+  </section>
 
   <lcpc-cta-band
     title="Conte o que você joga e o que quer resolver"

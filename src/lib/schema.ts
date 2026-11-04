@@ -2,6 +2,7 @@ import { business, mapsUrl } from '../data/business.ts';
 import { categories, publishedItems, type CatalogCategory } from '../data/catalog.ts';
 import type { FaqItem } from '../data/faq.ts';
 import { siteConfig } from '../data/site.ts';
+import type { Step } from '../data/steps.ts';
 
 const { address, phone, email, owner } = business;
 
@@ -41,6 +42,12 @@ export function localBusinessSchema(origin: URL) {
       addressCountry: address.country,
     },
     hasMap: mapsUrl,
+    // Região em que a empresa fica (fato geográfico, não área de atendimento): Zona Sul, dentro da cidade de São Paulo.
+    containedInPlace: {
+      '@type': 'Place',
+      name: 'Zona Sul de São Paulo',
+      containedInPlace: { '@type': 'City', name: 'São Paulo' },
+    },
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',
@@ -78,7 +85,7 @@ const imageObject = (origin: URL, image: SchemaImage, id?: string) => ({
 
 export function webPageSchema(
   origin: URL,
-  page: { path: string; type: string; name: string; description: string; image?: SchemaImage; breadcrumb: boolean },
+  page: { path: string; type: string; name: string; description: string; image?: SchemaImage; breadcrumb: boolean; speakable?: string[] },
 ) {
   const url = abs(origin, page.path);
   return {
@@ -93,6 +100,26 @@ export function webPageSchema(
     about: { '@id': companyId(origin) },
     ...(page.image ? { primaryImageOfPage: imageObject(origin, page.image, `${url}#imagem-principal`) } : {}),
     ...(page.breadcrumb ? { breadcrumb: { '@id': `${url}#migalhas` } } : {}),
+    // Trechos feitos para leitura em voz alta e resposta direta: o título e o bloco de resposta da página.
+    ...(page.speakable?.length ? { speakable: { '@type': 'SpeakableSpecification', cssSelector: page.speakable } } : {}),
+  };
+}
+
+/** Passos do atendimento, os mesmos da seção visível. O Google não dá mais resultado rico para HowTo; o valor é de leitura por IA. */
+export function howToSchema(origin: URL, howto: { path: string; name: string; steps: Step[] }) {
+  const url = abs(origin, howto.path);
+  return {
+    '@context': CONTEXT,
+    '@type': 'HowTo',
+    '@id': `${url}#como-funciona`,
+    name: howto.name,
+    inLanguage: 'pt-BR',
+    step: howto.steps.map((step, index) => ({
+      '@type': 'HowToStep',
+      position: index + 1,
+      name: step.name,
+      text: step.text,
+    })),
   };
 }
 

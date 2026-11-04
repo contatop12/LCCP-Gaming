@@ -8,7 +8,7 @@
   position: relative;
   aspect-ratio: 960 / 1020;
   overflow: hidden;
-  background: var(--navy-2);
+  background: var(--graphite-3);
 }
 
 /* A foto inteira é 1440x1640; o recorte mostra a janela de vidro e a lateral. */
@@ -50,18 +50,18 @@
 
 .xray__list {
   display: grid;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
 }
 
 .xray__item a {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--s-3);
   min-height: 3.5rem;
-  padding: 0.5rem 0.9rem 0.5rem 0.6rem;
+  padding: var(--s-2) var(--s-3);
   background: var(--graphite-2);
-  border-left: 3px solid var(--blue);
+  border-left: 3px solid var(--accent);
   text-decoration: none;
 }
 
@@ -86,7 +86,7 @@
 }
 
 .xray figcaption {
-  margin-top: 0.75rem;
+  margin-top: var(--s-3);
   color: var(--muted);
   font-size: 0.9375rem;
 }
@@ -129,7 +129,7 @@
   .xray__dot::after {
     content: '';
     position: absolute;
-    inset: -0.4rem;
+    inset: calc(var(--s-1) * -1.5);
     border: 2px solid var(--accent);
     clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
     animation: xray-ping 2.2s ease-out 1.2s 3 both;
@@ -171,7 +171,7 @@
 
   .xray__lines polyline {
     fill: none;
-    stroke: var(--blue);
+    stroke: var(--control);
     stroke-width: 2;
     vector-effect: non-scaling-stroke;
   }
@@ -200,14 +200,14 @@
 
   .xray__item a {
     min-height: 4rem;
-    background: rgba(13, 26, 44, 0.86);
+    background: rgba(21, 23, 26, 0.9);
   }
 
   .xray__item--l a {
     flex-direction: row-reverse;
-    padding: 0.5rem 0.6rem 0.5rem 0.9rem;
+    padding: var(--s-2) var(--s-3);
     border-left: 0;
-    border-right: 3px solid var(--blue);
+    border-right: 3px solid var(--accent);
     text-align: right;
   }
 

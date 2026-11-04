@@ -1,13 +1,13 @@
 /* Seletor de sintomas: uma tela de diagnóstico. Sem JavaScript, as respostas aparecem em sequência. */
 .sx {
   display: grid;
-  gap: 0.75rem;
+  gap: var(--s-3);
 }
 
 .sx__choices ul {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--s-2);
 }
 
 .sx__choices li {
@@ -19,12 +19,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--s-3);
   width: 100%;
   min-height: 3.25rem;
-  padding: 0 1.1rem;
+  padding: 0 var(--s-4);
   border: 0;
-  border-left: 4px solid var(--blue);
+  border-left: 4px solid var(--control);
   background: var(--graphite-3);
   color: var(--text);
   font-family: var(--font-display);
@@ -50,19 +50,19 @@
 
 .sx__screen {
   position: relative;
-  background: var(--navy-2);
+  background: var(--ink);
   background-image: var(--circuit);
-  border: 1px solid rgba(47, 162, 255, 0.45);
-  clip-path: polygon(0 0, calc(100% - 1.5rem) 0, 100% 1.5rem, 100% 100%, 0 100%);
+  border: 1px solid var(--line);
+  clip-path: polygon(0 0, calc(100% - var(--s-5)) 0, 100% var(--s-5), 100% 100%, 0 100%);
 }
 
 .sx__panel {
-  padding: 1.25rem 1.4rem 1.4rem;
+  padding: var(--s-5);
   scroll-margin-top: 6rem;
 }
 
 .sx__panel + .sx__panel {
-  border-top: 1px solid rgba(47, 162, 255, 0.35);
+  border-top: 1px solid var(--line);
 }
 
 .sx__panel h3 {
@@ -76,23 +76,23 @@
 
 .sx__cols {
   display: grid;
-  gap: 1rem;
-  margin-top: 0.9rem;
+  gap: var(--s-4);
+  margin-top: var(--s-3);
 }
 
 .sx__cols h4 {
-  color: var(--blue);
+  color: var(--accent-strong);
 }
 
 .sx__cols .ticks {
-  margin-top: 0.35rem;
+  margin-top: var(--s-1);
 }
 
 .sx__links {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.15rem 1.5rem;
-  margin-top: 0.75rem;
+  gap: var(--s-1) var(--s-5);
+  margin-top: var(--s-3);
 }
 
 .sx__links .text-link {
@@ -100,7 +100,7 @@
 }
 
 .sx__cta {
-  margin-top: 0.5rem;
+  margin-top: var(--s-2);
 }
 
 .sx__cta .btn {
@@ -116,20 +116,20 @@
 @media (min-width: 700px) {
   .sx__cols {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 2rem;
+    gap: var(--s-6);
   }
 }
 
 @media (min-width: 960px) {
   .sx {
     grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
-    gap: 1rem;
+    gap: var(--s-4);
     align-items: start;
   }
 
   .sx__choices ul {
     flex-direction: column;
-    gap: 0.4rem;
+    gap: var(--s-2);
   }
 
   .sx__tab::after,
@@ -143,15 +143,28 @@
   }
 }
 
+/* Ao escolher um sintoma, as linhas do painel "acendem" em sequência, como a lista de uma tela de POST. */
 @media (prefers-reduced-motion: no-preference) {
-  .sx[data-enhanced] .sx__panel:not([hidden]) {
-    animation: sx-in 0.22s ease-out;
+  .sx[data-enhanced] .sx__panel:not([hidden]) :is(h3, li, .sx__links, .sx__cta) {
+    animation: post 0.28s steps(4, end) both;
+  }
+
+  .sx[data-enhanced] .sx__panel:not([hidden]) li:nth-child(2) {
+    animation-delay: 0.06s;
+  }
+
+  .sx[data-enhanced] .sx__panel:not([hidden]) li:nth-child(3) {
+    animation-delay: 0.12s;
+  }
+
+  .sx[data-enhanced] .sx__panel:not([hidden]) :is(.sx__links, .sx__cta) {
+    animation-delay: 0.18s;
   }
 }
 
-@keyframes sx-in {
+@keyframes post {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateX(calc(var(--s-2) * -1));
   }
 }
