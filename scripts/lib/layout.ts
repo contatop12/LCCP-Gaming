@@ -1,0 +1,159 @@
+/**
+ * Estrutura comum a todas as páginas: <head>, cabeçalho, migalhas, rodapé, barra do celular, JSON-LD e scripts.
+ * As páginas em src/pages só trazem o conteúdo de <main> e os ajustes de página (meta lcpc:*).
+ */
+import { business, directionsUrl, fullAddress } from '../../src/data/business.ts';
+import type { FaqItem } from '../../src/data/faq.ts';
+import { logoImage, socialImage } from '../../src/data/media.ts';
+import { mainNav, siteConfig } from '../../src/data/site.ts';
+import type { WhatsappContext } from '../../src/data/whatsapp.ts';
+import { breadcrumbSchema, faqSchema, localBusinessSchema } from '../../src/lib/schema.ts';
+import { picture, whatsappLink } from './components.ts';
+import { esc } from './html.ts';
+import { source } from './images.ts';
+
+export interface Crumb {
+  label: string;
+  href: string;
+}
+
+export interface PageData {
+  /** Caminho público, com barras nas pontas (ex.: /pc-gamer/). */
+  path: string;
+  /** HTML já escapado, como escrito na página. */
+  title: string;
+  description: string;
+  context: WhatsappContext;
+  mobileCtaLabel?: string;
+  faq?: FaqItem[];
+  breadcrumbs?: Crumb[];
+  schema: object[];
+  noindex: boolean;
+  headExtras: string[];
+  main: string;
+  hasVideo: boolean;
+}
+
+export interface Assets {
+  css: string;
+  fontPreload: string;
+  mainScript: string;
+  videoScript: string;
+}
+
+/** Sem domínio, as URLs absolutas usam o endereço local de preview. */
+export const origin = new URL(siteConfig.siteUrl || 'http://localhost:4321');
+
+/** Escapa `<` para que um texto com "</script>" nunca encerre o bloco de JSON-LD. */
+const jsonForScript = (data: object) => JSON.stringify(data).replaceAll('<', '\\u003c');
+
+/** Valor de ambiente como literal JS seguro dentro de <script>. */
+const lit = (value: string) => JSON.stringify(value).replaceAll('<', '\\u003c');
+
+function analytics(): string {
+  const { gtmId, ga4Id } = siteConfig;
+  if (gtmId) {
+    return `<script>window.dataLayer=window.dataLayer||[];window.dataLayer.push({'gtm.start':Date.now(),event:'gtm.js'});var gtm=document.createElement('script');gtm.async=true;gtm.src='https://www.googletagmanager.com/gtm.js?id='+encodeURIComponent(${lit(gtmId)});document.head.appendChild(gtm);</script>`;
+  }
+  if (ga4Id) {
+    return `<script>window.dataLayer=window.dataLayer||[];window.gtag=function(){window.dataLayer.push(arguments);};window.gtag('js',new Date());window.gtag('config',${lit(ga4Id)},{transport_type:'beacon'});var ga=document.createElement('script');ga.async=true;ga.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(${lit(ga4Id)});document.head.appendChild(ga);</script>`;
+  }
+  return '';
+}
+
+async function logo(alt: string, eager: boolean): Promise<string> {
+  return picture(await source(logoImage.file), alt, [160, 320], '160px', { class: 'logo', eager });
+}
+
+function navItems(path: string): string {
+  const current = (href: string) => path === href || path.startsWith(href);
+  return mainNav.map((item) => `<li><a href="${item.href}"${current(item.href) ? ' aria-current="page"' : ''}>${esc(item.label)}</a></li>`).join('');
+}
+
+async function header(page: PageData): Promise<string> {
+  const items = navItems(page.path);
+  return (
+    `<header class="site-header"><div class="site-header__bar"><a class="site-header__logo" href="/" aria-label="LCPC Gaming, página inicial">${await logo('', true)}</a>` +
+    `<nav class="nav-desktop" aria-label="Principal"><ul>${items}</ul></nav>` +
+    `${whatsappLink({ context: page.context, location: 'header', label: 'Pedir orçamento', class: 'site-header__cta' })}` +
+    `<details class="nav-mobile" data-nav-menu><summary><span class="nav-mobile__closed">Menu</span><span class="nav-mobile__open">Fechar</span></summary>` +
+    `<nav aria-label="Principal, celular"><ul>${items}</ul></nav></details></div></header>`
+  );
+}
+
+function breadcrumbs(items: Crumb[]): string {
+  const last = items.length - 1;
+  const list = items
+    .map((item, index) => `<li>${index === last ? `<span aria-current="page">${esc(item.label)}</span>` : `<a href="${item.href}">${esc(item.label)}</a>`}</li>`)
+    .join('');
+  return `<nav class="breadcrumbs wrap" aria-label="Você está em"><ol>${list}</ol></nav>`;
+}
+
+async function footer(): Promise<string> {
+  const profile = siteConfig.googleBusinessUrl
+    ? `<br><a href="${esc(siteConfig.googleBusinessUrl)}" target="_blank" rel="noopener">Perfil da Empresa no Google</a>`
+    : '';
+  const links = mainNav.map((item) => `<li><a href="${item.href}">${esc(item.label)}</a></li>`).join('');
+  return (
+    `<footer class="site-footer"><div class="wrap site-footer__grid"><div>${await logo('LCPC Gaming', false)}<p class="site-footer__slogan">${esc(business.slogan)}</p></div>` +
+    `<address class="site-footer__nap"><strong>${esc(business.name)}</strong><br>${esc(fullAddress)}<br>WhatsApp <a href="tel:${business.phone.e164}">${esc(business.phone.display)}</a><br>` +
+    `<a href="mailto:${business.email}">${esc(business.email)}</a><br><a href="${esc(directionsUrl)}" target="_blank" rel="noopener">Como chegar</a>${profile}</address>` +
+    `<nav aria-label="Rodapé"><ul class="site-footer__nav">${links}</ul></nav></div>` +
+    `<div class="wrap site-footer__legal"><p>Horários e condições de retirada e entrega: consulte pelo WhatsApp.</p><p>© ${new Date().getFullYear()} ${esc(business.name)}. São Paulo - SP.</p></div></footer>`
+  );
+}
+
+export async function renderPage(page: PageData, assets: Assets): Promise<string> {
+  const canonical = siteConfig.siteUrl ? `${siteConfig.siteUrl}${page.path}` : null;
+  const robots = siteConfig.indexable && !page.noindex ? 'index, follow' : 'noindex, nofollow';
+  const ogImage = new URL(socialImage.src, origin).href;
+  const pageUrl = canonical ?? new URL(page.path, origin).href;
+
+  const structuredData = [
+    localBusinessSchema(origin),
+    ...(page.breadcrumbs ? [breadcrumbSchema(page.breadcrumbs, origin)] : []),
+    ...(page.faq?.length ? [faqSchema(page.faq)] : []),
+    ...page.schema,
+  ];
+
+  const head = [
+    '<meta charset="utf-8">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1">',
+    `<title>${page.title}</title>`,
+    `<meta name="description" content="${page.description}">`,
+    `<meta name="robots" content="${robots}">`,
+    canonical ? `<link rel="canonical" href="${esc(canonical)}">` : '',
+    '<meta name="theme-color" content="#1d2024">',
+    '<link rel="icon" type="image/png" sizes="48x48" href="/favicon.png">',
+    '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
+    `<link rel="preload" href="${assets.fontPreload}" as="font" type="font/woff2" crossorigin>`,
+    '<meta property="og:type" content="website">',
+    '<meta property="og:locale" content="pt_BR">',
+    '<meta property="og:site_name" content="LCPC Gaming">',
+    `<meta property="og:title" content="${page.title}">`,
+    `<meta property="og:description" content="${page.description}">`,
+    `<meta property="og:url" content="${esc(pageUrl)}">`,
+    `<meta property="og:image" content="${esc(ogImage)}">`,
+    `<meta property="og:image:width" content="${socialImage.width}">`,
+    `<meta property="og:image:height" content="${socialImage.height}">`,
+    `<meta property="og:image:alt" content="${esc(socialImage.alt)}">`,
+    '<meta name="twitter:card" content="summary_large_image">',
+    `<meta name="twitter:title" content="${page.title}">`,
+    `<meta name="twitter:description" content="${page.description}">`,
+    `<meta name="twitter:image" content="${esc(ogImage)}">`,
+    ...page.headExtras,
+    `<style>${assets.css}</style>`,
+    ...structuredData.map((data) => `<script type="application/ld+json">${jsonForScript(data)}</script>`),
+    analytics(),
+  ].join('');
+
+  const scripts = [assets.mainScript, page.hasVideo ? assets.videoScript : ''].filter(Boolean).map((js) => `<script>${js}</script>`).join('');
+
+  return (
+    `<!doctype html><html lang="pt-BR"><head>${head}</head><body>` +
+    `<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>${await header(page)}` +
+    `${page.breadcrumbs ? breadcrumbs(page.breadcrumbs) : ''}<main id="conteudo">${page.main}</main>${await footer()}` +
+    `<div class="mobile-cta">${whatsappLink({ context: page.context, location: 'barra_celular', label: page.mobileCtaLabel, class: 'btn--block' })}</div>` +
+    `${scripts}</body></html>`
+  );
+}

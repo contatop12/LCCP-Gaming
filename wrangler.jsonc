@@ -1,0 +1,42 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lcpc-gaming",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-11-03",
+
+  // Gera dist/ antes de cada "wrangler dev" e "wrangler deploy", então o deploy nunca publica um build velho.
+  // As variáveis PUBLIC_* do build vêm do ambiente (ou do .env local). Veja o README.
+  "build": {
+    "command": "npm run build",
+    // Em "wrangler dev", mudanças nestas pastas refazem o build sozinhas.
+    "watch_dir": ["src/pages", "src/data", "src/lib", "src/styles", "src/client", "src/assets", "public", "scripts"]
+  },
+
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    // /pc-gamer redireciona para /pc-gamer/, que serve pc-gamer/index.html.
+    "html_handling": "auto-trailing-slash",
+    // Rota inexistente responde 404 com o conteúdo de dist/404.html.
+    "not_found_handling": "404-page",
+    // Todas as requisições passam antes pelo Worker (src/worker/index.ts): cabeçalhos de segurança,
+    // cache, noindex fora do domínio de produção e suporte a Range para o vídeo.
+    "run_worker_first": true
+  },
+
+  "vars": {
+    // Host de produção, sem https:// e sem barra (ex.: "www.lcpcgaming.com"). Vazio por enquanto:
+    // enquanto estiver vazio, TODA resposta leva X-Robots-Tag: noindex, nofollow.
+    // Quando o domínio for confirmado, preencha aqui e também PUBLIC_SITE_URL / PUBLIC_INDEXABLE no build.
+    "PRODUCTION_HOST": ""
+  },
+
+  "observability": {
+    "enabled": true,
+    "traces": { "enabled": true }
+  }
+
+  // DOMÍNIO PERSONALIZADO: ainda não confirmado, então não há "routes" aqui. Quando houver, acrescente:
+  //   "routes": [{ "pattern": "www.dominio.com.br", "custom_domain": true }]
+  // (a zona precisa estar na mesma conta Cloudflare) e preencha PRODUCTION_HOST acima com o mesmo host.
+}

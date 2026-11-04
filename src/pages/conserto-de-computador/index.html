@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Conserto de computador na Vila Marari, São Paulo | LCPC Gaming</title>
+  <meta name="description" content="Desktop que não liga, liga sem dar vídeo, trava ou reinicia? Diagnóstico, troca de componentes, manutenção e all-in-one. Orçamento pelo WhatsApp.">
+  <!-- Ajustes desta página (lidos pelo build e removidos do HTML final). -->
+  <meta name="lcpc:context" content="computador">
+  <meta name="lcpc:mobile-cta" content="Enviar dados do computador">
+  <meta name="lcpc:faq" content="computador">
+  <meta name="lcpc:breadcrumb" content="Conserto de computador">
+</head>
+<body>
+<main>
+
+  <section class="page-hero">
+    <div class="wrap">
+      <h1 class="page-hero__wide">Conserto de computador e <span class="nowrap">all-in-one</span> na Vila Marari, em São Paulo</h1>
+      <p class="lead">
+        Seu desktop não liga, liga sem dar vídeo, trava ou reinicia? A LCPC Gaming faz o diagnóstico, troca os componentes com defeito e cuida da manutenção de computadores de mesa e all-in-one.
+      </p>
+      <div class="actions">
+        <lcpc-whatsapp context="computador" location="hero">Enviar dados no WhatsApp</lcpc-whatsapp>
+        <a class="btn btn--ghost" href="/pc-gamer/">Meu computador é um PC gamer</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--raised" aria-labelledby="sintomas">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="sintomas">O que costuma ser avaliado em cada sintoma</h2>
+        <p>Os testes confirmam a causa. Para cada sintoma, veja também o que vale informar no pedido de orçamento.</p>
+      </div>
+      <table class="symptom-table symptom-table--three">
+        <caption class="sr-only">Sintomas de computador, o que é avaliado e o que informar</caption>
+        <thead>
+          <tr><th scope="col">Sintoma</th><th scope="col">O que costuma ser avaliado</th><th scope="col">O que informar</th></tr>
+        </thead>
+        <tbody>
+          <tr id="nao-liga">
+            <th scope="row">Não liga</th>
+            <td data-label="Avaliado">Fonte, botão e conectores frontais, placa-mãe e memória.</td>
+            <td data-label="Informar">Se aparece alguma luz, se as ventoinhas giram e se houve queda de energia antes do problema.</td>
+          </tr>
+          <tr id="sem-video">
+            <th scope="row">Liga, mas não dá vídeo</th>
+            <td data-label="Avaliado">Memória, placa de vídeo, fonte e placa-mãe.</td>
+            <td data-label="Informar">Se o monitor mostra alguma mensagem e se o computador emite algum aviso sonoro ao ligar.</td>
+          </tr>
+          <tr id="trava">
+            <th scope="row">Trava ou fica lento</th>
+            <td data-label="Avaliado">Memória, HD ou SSD, temperatura e estado do sistema operacional.</td>
+            <td data-label="Informar">Quando acontece, se aparece tela azul e há quanto tempo o sistema foi instalado.</td>
+          </tr>
+          <tr id="reinicia">
+            <th scope="row">Reinicia ou desliga sozinho</th>
+            <td data-label="Avaliado">Temperatura, fonte, memória e sistema.</td>
+            <td data-label="Informar">Se o problema aparece em uso pesado ou também com o computador parado.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="componentes" class="section" aria-labelledby="componentes-titulo">
+    <div class="wrap columns-2">
+      <div>
+        <h2 id="componentes-titulo">Troca de componentes</h2>
+        <p>A troca faz parte do reparo: primeiro o diagnóstico identifica a peça com defeito, depois vem o orçamento.</p>
+        <!-- Itens de src/data/catalog.ts (categoria "desktops"), sem o item de all-in-one, que tem seção própria. -->
+        <lcpc-catalog category="desktops" exclude="all-in-one" class="ticks" />
+      </div>
+      <div>
+        <h2 id="manutencao">Manutenção</h2>
+        <p>
+          Poeira e pasta térmica vencida elevam a temperatura e o ruído. A limpeza inclui ventoinhas, dissipadores e filtros, troca de pasta térmica, organização de cabos e ajuste do fluxo de ar, com testes de temperatura e estabilidade ao final.
+        </p>
+        <p><a class="text-link" href="/servicos/#limpeza">Ver limpeza e manutenção preventiva</a></p>
+        <h2 id="all-in-one" class="spaced-heading">All-in-one</h2>
+        <p>Em computadores all-in-one, tela e componentes ficam no mesmo corpo. O catálogo inclui a troca de tela, de fonte interna e de outros componentes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--raised" aria-labelledby="gamer">
+    <div class="wrap feature feature--reverse">
+      <lcpc-photo name="gabineteInterior" sizes="(min-width: 900px) 40vw, 100vw" widths="480,668" class="feature__media photo--cut" />
+      <div class="feature__text">
+        <h2 id="gamer">Seu computador é um PC gamer?</h2>
+        <p>
+          Aquecimento, ruído, travamentos em jogo, upgrade e montagem têm uma página própria, organizada pelos três caminhos mais comuns.
+        </p>
+        <p><a class="btn btn--ghost" href="/pc-gamer/">Ver serviços para PC gamer</a></p>
+        <p class="hint">
+          O problema parece ser de software? Veja <a class="text-link" href="/servicos/#formatacao">formatação e sistemas</a> e <a class="text-link" href="/servicos/#virus">remoção de vírus</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <lcpc-faq set="computador" title="Dúvidas sobre conserto de computador" />
+
+  <lcpc-cta-band
+    title="Descreva o que acontece ao ligar o computador"
+    text="Informe o modelo ou a configuração e peça o orçamento pelo WhatsApp."
+    context="computador"
+    label="Enviar dados do computador no WhatsApp" />
+
+</main>
+</body>
+</html>

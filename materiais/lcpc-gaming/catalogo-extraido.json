@@ -1,0 +1,607 @@
+[
+  {
+    "pdfSection": 1,
+    "source": "Diagnóstico de computador ou notebook que não liga",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 1,
+    "source": "Diagnóstico de equipamento que liga, mas não dá vídeo",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 1,
+    "source": "Diagnóstico de lentidão, travamentos e tela azul",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 1,
+    "source": "Diagnóstico de desligamentos e reinicializações espontâneas",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 1,
+    "source": "Diagnóstico de superaquecimento e ruído excessivo",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 1,
+    "source": "Diagnóstico de falhas de carregamento e baixa autonomia",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 1,
+    "source": "Testes de memória RAM, HD, SSD, fonte, bateria e placa de vídeo",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 1,
+    "source": "Diagnóstico após queda, contato com líquido ou surto elétrico",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 1,
+    "source": "Emissão de laudo técnico e orçamento de reparo",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 2,
+    "source": "Troca de tela quebrada ou com linhas, manchas e falhas de imagem",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 2,
+    "source": "Troca de cabo flat da tela",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 2,
+    "source": "Troca ou reparo do touchscreen, conforme o modelo",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 2,
+    "source": "Troca de teclado e reparo de falhas na retroiluminação",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 2,
+    "source": "Troca de touchpad e botões",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 2,
+    "source": "Troca de bateria interna ou removível",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 2,
+    "source": "Troca de conector de carga convencional ou USB-C",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 2,
+    "source": "Troca de botão de ligar",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 2,
+    "source": "Troca de webcam, microfone e alto-falantes internos",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 2,
+    "source": "Troca de ventoinha e dissipador",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 2,
+    "source": "Reparo ou troca de dobradiças",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 2,
+    "source": "Recuperação de pontos de fixação das dobradiças",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 2,
+    "source": "Reparo ou troca de carcaça, tampa da tela, base e apoio das mãos",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 3,
+    "source": "Troca de fonte de alimentação",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 3,
+    "source": "Troca de placa-mãe, processador e memória RAM",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 3,
+    "source": "Troca de HD, SSD e placa de vídeo",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 3,
+    "source": "Troca de cooler, ventoinhas e water cooler",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 3,
+    "source": "Troca de gabinete e reorganização da montagem",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 3,
+    "source": "Reparo ou troca dos botões e conectores frontais do gabinete",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 3,
+    "source": "Instalação ou troca de placa de rede, adaptador Wi-Fi e Bluetooth",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 3,
+    "source": "Troca de tela, fonte interna e outros componentes de all-in-one",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 4,
+    "source": "Reparo de placa-mãe em nível de componente",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 4,
+    "source": "Localização de curto-circuito e falhas nas linhas de alimentação",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 4,
+    "source": "Reparo do circuito de carga e alimentação da bateria",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 4,
+    "source": "Reparo de equipamento após contato com líquido, com descontaminação da placa",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 4,
+    "source": "Reparo de placas afetadas por surto elétrico",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 4,
+    "source": "Microssolda e substituição de componentes SMD",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 4,
+    "source": "Recuperação de trilhas e pontos de solda",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 4,
+    "source": "Reparo ou troca de portas USB, USB-C, HDMI, áudio e rede soldadas à placa",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 4,
+    "source": "Regravação de BIOS/UEFI e firmware, conforme o modelo",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 4,
+    "source": "Reparo de placa de vídeo dedicada",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 4,
+    "source": "Retrabalho BGA e reballing, quando indicados pelo diagnóstico",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 5,
+    "source": "Limpeza interna e externa de computadores e notebooks",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 5,
+    "source": "Remoção de poeira das ventoinhas, dissipadores e filtros",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 5,
+    "source": "Troca de pasta térmica do processador e da placa de vídeo",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 5,
+    "source": "Troca de thermal pads, quando aplicável",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 5,
+    "source": "Limpeza e manutenção do sistema de refrigeração",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 5,
+    "source": "Organização de cabos e ajuste do fluxo de ar do gabinete",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 5,
+    "source": "Limpeza de teclado, tela e conectores",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 5,
+    "source": "Testes de temperatura e estabilidade após a manutenção",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 6,
+    "source": "Upgrade de HD para SSD SATA ou NVMe",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 6,
+    "source": "Ampliação de memória RAM",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 6,
+    "source": "Instalação de armazenamento adicional",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 6,
+    "source": "Upgrade de processador, placa de vídeo e fonte em desktops compatíveis",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 6,
+    "source": "Upgrade do sistema de refrigeração",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 6,
+    "source": "Montagem de PC gamer, computador de escritório ou workstation",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 6,
+    "source": "Seleção de peças conforme compatibilidade, orçamento e uso",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 6,
+    "source": "Instalação e configuração de componentes comprados pelo cliente",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 6,
+    "source": "Configuração de BIOS e perfis de memória compatíveis",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 6,
+    "source": "Testes de desempenho, temperatura e estabilidade sob carga",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 7,
+    "source": "Formatação com ou sem backup prévio",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 7,
+    "source": "Instalação, reinstalação e configuração de Windows, macOS ou Linux",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 7,
+    "source": "Atualização de sistema operacional",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 7,
+    "source": "Correção de falhas de inicialização e de atualização",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 7,
+    "source": "Recuperação do sistema e do carregador de inicialização",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 7,
+    "source": "Instalação e atualização de drivers",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 7,
+    "source": "Instalação e configuração de programas de escritório e outros aplicativos licenciados",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 7,
+    "source": "Configuração de contas de usuário, e-mail e sincronização em nuvem",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 7,
+    "source": "Configuração de dual boot e particionamento de discos",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 7,
+    "source": "Otimização da inicialização e remoção de programas desnecessários",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 7,
+    "source": "Configuração inicial de computador ou notebook novo",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 8,
+    "source": "Backup de documentos, fotos, vídeos e outros arquivos",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 8,
+    "source": "Configuração de backup automático local ou em nuvem",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 8,
+    "source": "Clonagem de HD ou SSD",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 8,
+    "source": "Migração de sistema e arquivos para SSD",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 8,
+    "source": "Transferência de arquivos, perfis e configurações para outro computador",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 8,
+    "source": "Recuperação lógica de arquivos excluídos ou de partições danificadas",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 8,
+    "source": "Recuperação de arquivos de equipamento que não liga, quando a unidade está acessível",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 8,
+    "source": "Diagnóstico e encaminhamento para laboratório em caso de falha física do armazenamento",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 8,
+    "source": "Restauração de backups e verificação dos arquivos recuperados",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 8,
+    "source": "Apagamento seguro de dados antes de venda, doação ou descarte",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 9,
+    "source": "Remoção de vírus, malware, spyware e adware",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 9,
+    "source": "Limpeza de extensões maliciosas e redirecionamentos do navegador",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 9,
+    "source": "Correção de alterações feitas por programas maliciosos",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 9,
+    "source": "Instalação e configuração de antivírus e firewall",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 9,
+    "source": "Configuração de criptografia de disco e proteção de contas",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 9,
+    "source": "Recuperação de acesso ao sistema por meios autorizados, mediante comprovação de propriedade",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 9,
+    "source": "Diagnóstico de incidentes de ransomware e avaliação das opções de recuperação",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 10,
+    "source": "Diagnóstico de falhas de Wi-Fi, Bluetooth e conexão cabeada",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 10,
+    "source": "Instalação de placas e adaptadores de rede",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 10,
+    "source": "Configuração de roteadores, repetidores e sistemas mesh",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 10,
+    "source": "Configuração de rede doméstica ou de pequeno escritório",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 10,
+    "source": "Compartilhamento de arquivos, pastas e impressoras",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 10,
+    "source": "Instalação e configuração de impressoras e scanners",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 10,
+    "source": "Configuração de monitores externos, docks e adaptadores",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 10,
+    "source": "Configuração de webcams, microfones, headsets e equipamentos para videoconferência",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 10,
+    "source": "Configuração de acesso remoto e VPN",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 11,
+    "source": "MacBook e iMac — diagnóstico, reinstalação de macOS, troca de tela, bateria e teclado, além de reparo de placa lógica conforme o modelo",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 11,
+    "source": "Notebook gamer — manutenção térmica, diagnóstico de perda de desempenho, falhas gráficas e desligamentos durante jogos",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 11,
+    "source": "Ultrabook — reparo de carregamento via USB-C, dobradiças, telas finas e componentes soldados, conforme o modelo",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 11,
+    "source": "Workstation — montagem, upgrade e testes para edição de vídeo, renderização, projetos 3D e engenharia",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 11,
+    "source": "Chromebook — recuperação do ChromeOS, diagnóstico de carregamento e troca de tela, bateria ou teclado, conforme o modelo",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 12,
+    "source": "Suporte técnico remoto e presencial",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 12,
+    "source": "Contratos de manutenção preventiva e corretiva",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 12,
+    "source": "Gestão de chamados e inventário de equipamentos",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 12,
+    "source": "Preparação e padronização de computadores para novos funcionários",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 12,
+    "source": "Instalação e atualização de sistemas e aplicativos em vários equipamentos",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 12,
+    "source": "Configuração de contas, permissões, pastas compartilhadas e impressoras",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 12,
+    "source": "Implantação e monitoramento de rotinas de backup",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 12,
+    "source": "Configuração e suporte a NAS e servidores de arquivos de pequeno porte",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 12,
+    "source": "Migração ou substituição de computadores do escritório",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 13,
+    "source": "Atendimento em domicílio, no escritório ou na bancada",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 13,
+    "source": "Retirada e entrega de equipamentos",
+    "color": "verde"
+  },
+  {
+    "pdfSection": 13,
+    "source": "Fornecimento de peças, carregadores, baterias e acessórios compatíveis",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 13,
+    "source": "Diagnóstico ou troca de monitores, nobreaks e periféricos",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 13,
+    "source": "Avaliação técnica de computador usado antes da compra",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 13,
+    "source": "Revisão e preparação de equipamento para revenda",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 13,
+    "source": "Orientação para compra de notebook, desktop ou componentes",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 13,
+    "source": "Encaminhamento para descarte eletrônico ou reciclagem",
+    "color": "vermelho"
+  },
+  {
+    "pdfSection": 14,
+    "source": "Desenvolvimento de Site Institucional",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 14,
+    "source": "Desenvolvimento de Landing Page",
+    "color": "amarelo"
+  },
+  {
+    "pdfSection": 14,
+    "source": "Criação de Logotipo / Manual de Identidade",
+    "color": "amarelo"
+  }
+]

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Conserto de computador e notebook na Vila Marari | LCPC Gaming</title>
+  <meta name="description" content="Assistência técnica em São Paulo: diagnóstico, conserto de notebooks e desktops, montagem e upgrade de PC gamer. Peça seu orçamento pelo WhatsApp.">
+  <!--
+    Ajustes desta página. O build lê estas linhas e as remove do HTML final.
+    lcpc:faq = conjunto de perguntas de src/data/faq.ts que entra no JSON-LD (deve ser o mesmo do <lcpc-faq> abaixo).
+    Sem lcpc:context, o WhatsApp do cabeçalho e da barra do celular usa a mensagem "geral".
+  -->
+  <meta name="lcpc:faq" content="home">
+</head>
+<body>
+<main>
+
+  <section class="hero">
+    <div class="hero__media">
+      <!-- Abertura: imagem principal, com recorte próprio para celular e preload no <head>. -->
+      <lcpc-picture name="hero" sizes="(min-width: 900px) 56vw, 100vw" widths="640,960,1280,1440"
+        art-name="heroMobile" art-widths="390,640,780,1080" art-sizes="100vw" art-media="(max-width: 899px)"
+        priority preload preload-media="(min-width: 900px)" />
+    </div>
+    <div class="hero__text">
+      <p class="hero__place"><span class="hero__street">Rua Maria Pais de Barros, 329, </span>Vila Marari, São Paulo</p>
+      <h1>Assistência técnica de computadores e notebooks na Vila Marari</h1>
+      <p class="lead">
+        Diagnóstico, conserto, limpeza e upgrade com <lcpc-business field="owner.name" />, responsável pelos serviços. Também monta e faz manutenção de PC gamer.
+      </p>
+      <div class="actions">
+        <lcpc-whatsapp context="geral" location="hero" />
+        <a class="btn btn--ghost" href="/pc-gamer/">Ver serviços para PC gamer</a>
+      </div>
+      <p class="hint">Informe o modelo do equipamento e o que está acontecendo. O orçamento começa por aí.</p>
+    </div>
+  </section>
+
+  <section class="section section--raised" aria-labelledby="pc-gamer">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="pc-gamer">PC gamer: montar, melhorar ou descobrir o que está errado</h2>
+        <p>Três caminhos para o seu desktop. Escolha o que descreve a sua situação.</p>
+      </div>
+      <div class="paths">
+        <article class="path">
+          <h3><a href="/pc-gamer/#montar">Montar um PC</a></h3>
+          <p>Você informa jogos, resolução e orçamento. As peças são escolhidas por compatibilidade e uso, e você pode trazer as que já comprou.</p>
+        </article>
+        <article class="path">
+          <h3><a href="/pc-gamer/#upgrade">Melhorar o PC atual</a></h3>
+          <p>Processador, placa de vídeo, memória, armazenamento, fonte ou refrigeração. A avaliação parte do que a sua configuração aceita.</p>
+        </article>
+        <article class="path">
+          <h3><a href="/pc-gamer/#diagnostico">Diagnosticar um problema</a></h3>
+          <p>Aquecimento, ruído, travamentos, desligamentos ou falta de vídeo. Testes de componentes, temperatura e estabilidade ajudam a achar a causa.</p>
+        </article>
+      </div>
+      <p class="section-foot"><a class="text-link" href="/pc-gamer/">Ver como funciona cada caminho</a></p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="conserto">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="conserto">Conserto de notebooks e desktops</h2>
+        <p>Comece pelo sintoma. Cada um leva ao que é avaliado e ao que enviar no pedido de orçamento.</p>
+      </div>
+      <div class="columns-2">
+        <div>
+          <h3><a class="heading-link" href="/conserto-de-notebook/">Notebook</a></h3>
+          <ul class="link-rows">
+            <li><a href="/conserto-de-notebook/#tela">Tela quebrada, com linhas ou manchas</a></li>
+            <li><a href="/conserto-de-notebook/#teclado">Teclado ou touchpad com falha</a></li>
+            <li><a href="/conserto-de-notebook/#bateria">Bateria que dura pouco</a></li>
+            <li><a href="/conserto-de-notebook/#carregamento">Notebook que não carrega</a></li>
+            <li><a href="/conserto-de-notebook/#dobradica">Dobradiça quebrada ou carcaça danificada</a></li>
+            <li><a href="/conserto-de-notebook/#superaquecimento">Superaquecimento e ruído</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3><a class="heading-link" href="/conserto-de-computador/">Computador de mesa e all-in-one</a></h3>
+          <ul class="link-rows">
+            <li><a href="/conserto-de-computador/#nao-liga">Computador que não liga</a></li>
+            <li><a href="/conserto-de-computador/#sem-video">Liga, mas não dá vídeo</a></li>
+            <li><a href="/conserto-de-computador/#trava">Trava ou fica lento</a></li>
+            <li><a href="/conserto-de-computador/#reinicia">Reinicia ou desliga sozinho</a></li>
+            <li><a href="/conserto-de-computador/#componentes">Troca de componentes</a></li>
+            <li><a href="/conserto-de-computador/#all-in-one">All-in-one</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--raised" aria-labelledby="servicos">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="servicos">Serviços prioritários</h2>
+        <p>O foco da LCPC Gaming. O catálogo completo, com os serviços complementares, está na página de serviços.</p>
+      </div>
+      <!-- Título e resumo vêm de src/data/catalog.ts (categorias de foco, sem "atendimento"). -->
+      <lcpc-category-summaries priority="foco" exclude="atendimento" class="spec-rows" />
+      <p class="section-foot"><a class="text-link" href="/servicos/">Ver todos os serviços</a></p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="bancada">
+    <div class="wrap feature">
+      <lcpc-photo name="bancada" sizes="(min-width: 900px) 50vw, 100vw" class="feature__media photo--cut" />
+      <div class="feature__text">
+        <h2 id="bancada">Na bancada</h2>
+        <p>
+          Um diagnóstico sério passa por abrir o equipamento, olhar placa, conectores e ventoinha e testar as peças. As fotos deste site mostram esse trabalho e o ambiente real da LCPC Gaming.
+        </p>
+        <p><a class="text-link" href="/sobre/">Ver mais registros de bancada</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--raised" aria-labelledby="quem-cuida">
+    <div class="wrap feature feature--reverse">
+      <lcpc-photo name="luisCarlos" sizes="(min-width: 900px) 34vw, 100vw" class="feature__media feature__media--small photo--cut" />
+      <div class="feature__text">
+        <h2 id="quem-cuida">Quem cuida do seu equipamento</h2>
+        <p>
+          <lcpc-business field="owner.name" /> é o proprietário da LCPC Gaming e o responsável pelos serviços. Ele atende computadores e notebooks e agora amplia o trabalho com montagem, upgrade e manutenção de desktops gamer.
+        </p>
+        <p><a class="text-link" href="/sobre/">Conhecer a LCPC Gaming</a></p>
+      </div>
+    </div>
+  </section>
+
+  <lcpc-faq set="home" />
+
+  <section class="section section--raised" aria-labelledby="localizacao">
+    <div class="wrap split">
+      <h2 id="localizacao" class="split__head">Onde fica a LCPC Gaming</h2>
+      <lcpc-location context="geral" location="localizacao" />
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

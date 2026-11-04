@@ -1,0 +1,29 @@
+{
+  "name": "lcpc-gaming-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --ip 127.0.0.1 --port 4321",
+    "build": "node --env-file-if-exists=.env scripts/build.ts",
+    "preview": "wrangler dev --ip 127.0.0.1 --port 4321",
+    "check": "tsc --noEmit && tsc --noEmit -p src/worker/tsconfig.json",
+    "media": "node scripts/prepare-media.mjs",
+    "verify": "node scripts/verify-site.mjs",
+    "test": "npm run check && npm run build && npm run verify",
+    "test:e2e": "node scripts/e2e.mjs",
+    "types": "wrangler types --strict-vars=false",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
+    "playwright-core": "^1.64.1",
+    "sharp": "^0.35.5",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.157.0"
+  },
+  "engines": {
+    "node": ">=24.11"
+  }
+}
