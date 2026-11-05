@@ -30,9 +30,9 @@
         <p class="hint">Informe o equipamento e o que está acontecendo. Para horários, retirada e entrega, pergunte direto pelo WhatsApp.</p>
       </div>
       <div class="phero__media">
-        <lcpc-tile name="bancadaLuz" sizes="(min-width: 900px) 46vw, 100vw" class="tile--wide" pos="50% 40%" priority />
-        <lcpc-tile name="bancadaFerramentas" sizes="(min-width: 900px) 23vw, 50vw" widths="480,800" pos="50% 60%" />
-        <lcpc-tile name="luisCarlos" sizes="(min-width: 900px) 23vw, 50vw" widths="480,800" pos="50% 58%" bare />
+        <lcpc-tile name="bancadaLuz" ratio="2.6" ratio-m="1.8" sizes="(min-width: 900px) 46vw, calc(100vw - 2.5rem)" class="tile--wide" pos="50% 40%" priority />
+        <lcpc-tile name="bancadaFerramentas" ratio="2" ratio-m="1" sizes="(min-width: 900px) 22vw, calc((100vw - 3rem) / 2)" pos="50% 60%" />
+        <lcpc-tile name="luisCarlos" ratio="2" ratio-m="1" sizes="(min-width: 900px) 22vw, calc((100vw - 3rem) / 2)" pos="50% 58%" bare />
       </div>
     </div>
   </section>
@@ -46,7 +46,7 @@
         <h2 id="antes">Antes de enviar a mensagem</h2>
         <p>Para agilizar o orçamento, escolha a mensagem pronta do seu assunto e complete com os dados do equipamento.</p>
       </div>
-      <div class="bento">
+      <div class="bento scroll-m" tabindex="0" role="region" aria-label="Mensagens prontas por assunto (role para o lado)">
         <article class="tile tile--text c3">
           <h3>Notebook</h3>
           <p>Marca, modelo e sintoma.</p>
@@ -72,7 +72,7 @@
     </div>
   </section>
 
-  <lcpc-faq set="contato" title="Dúvidas sobre o atendimento" lead="Horários, retirada e entrega, e como chegar." photo="bancadaNotebookAberto" photo-pos="50% 60%" />
+  <lcpc-faq set="contato" title="Dúvidas sobre o atendimento" lead="Horários, retirada e entrega, e como chegar." photo="bancadaNotebookAberto" photo-pos="50% 60%" photo-ratio="1.6" />
 
   <lcpc-cta-band
     title="Prefere falar agora?"

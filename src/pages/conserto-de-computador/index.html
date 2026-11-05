@@ -31,9 +31,9 @@
         </div>
       </div>
       <div class="phero__media">
-        <lcpc-tile name="videoGabinete" sizes="(min-width: 900px) 46vw, 100vw" widths="232,464" class="tile--wide tile--tall" pos="50% 45%" morph="computador" priority />
-        <lcpc-tile name="bancada" sizes="(min-width: 900px) 23vw, 50vw" widths="480,800" pos="50% 40%" />
-        <lcpc-tile name="bancadaLuz" sizes="(min-width: 900px) 23vw, 50vw" widths="480,800" pos="50% 40%" />
+        <lcpc-tile name="videoGabinete" ratio="2.4" ratio-m="1.4" sizes="(min-width: 900px) 46vw, calc(100vw - 2.5rem)" widths="232,464" class="tile--wide tile--tall" pos="50% 45%" morph="computador" priority />
+        <lcpc-tile name="bancada" ratio="1.9" ratio-m="1" sizes="(min-width: 900px) 22vw, calc((100vw - 3rem) / 2)" pos="50% 40%" />
+        <lcpc-tile name="bancadaLuz" ratio="1.9" ratio-m="1" sizes="(min-width: 900px) 22vw, calc((100vw - 3rem) / 2)" pos="50% 40%" />
       </div>
     </div>
   </section>
@@ -55,7 +55,7 @@
     <div class="wrap">
       <div class="head">
         <h2 id="sintomas-titulo">O que costuma ser avaliado em cada sintoma</h2>
-        <p>Os testes confirmam a causa. Para cada sintoma, veja também o que vale informar no pedido de orçamento.</p>
+        <p>Os testes apontam a causa. Para cada sintoma, veja também o que vale informar no pedido de orçamento.</p>
       </div>
       <lcpc-symptoms set="computador" location="sintomas_computador" />
     </div>
@@ -65,13 +65,13 @@
     <div class="wrap">
       <div class="head">
         <h2 id="componentes-titulo">Troca de componentes, manutenção e all-in-one</h2>
-        <p>A troca faz parte do reparo: primeiro o diagnóstico identifica a peça com defeito, depois vem o orçamento. Se a causa estiver na placa-mãe, o conserto de placa-mãe é avaliado como <a class="text-link" href="/servicos/#placas">reparo eletrônico de placas</a>.</p>
+        <p>A troca de componentes faz parte do reparo: o diagnóstico ajuda a identificar a peça com defeito e o laudo técnico traz o orçamento. Se a causa estiver na placa-mãe, o conserto de placa-mãe é avaliado como <a class="text-link" href="/servicos/#placas">reparo eletrônico de placas</a>.</p>
       </div>
       <div class="bento">
         <article id="componentes" class="tile tile--text c5">
           <h3>Troca de componentes</h3>
           <!-- Itens de src/data/catalog.ts (categoria "desktops"), sem o item de all-in-one, que tem bloco próprio. -->
-          <lcpc-catalog category="desktops" exclude="all-in-one" class="ticks" />
+          <lcpc-catalog category="desktops" exclude="all-in-one" class="ticks" collapse="Ver os itens da troca de componentes" />
         </article>
         <article id="manutencao" class="tile tile--text tile--deep c4">
           <h3>Manutenção</h3>
@@ -80,7 +80,7 @@
           </p>
           <p><a class="text-link" href="/servicos/#limpeza">Ver limpeza e manutenção preventiva</a></p>
         </article>
-        <lcpc-tile name="bancadaLuz" sizes="(min-width: 760px) 23vw, 100vw" class="c3 r2" pos="35% 50%" />
+        <lcpc-tile name="bancadaLuz" sizes="22vw" ratio="0.65" ratio-m="0.65" class="c3 r2 hide-m" pos="35% 50%" />
         <article id="all-in-one" class="tile tile--text c9">
           <h3>All-in-one</h3>
           <p>Em computadores all-in-one, tela e componentes ficam no mesmo corpo. O catálogo inclui a troca de tela, de fonte interna e de outros componentes. Envie a marca e o modelo e descreva o defeito.</p>
@@ -92,7 +92,7 @@
 
   <section class="band band--raised" aria-labelledby="gamer">
     <div class="wrap bento">
-      <lcpc-tile name="gabineteInterior" sizes="(min-width: 760px) 39vw, 100vw" widths="480,668" class="c5" pos="50% 50%" />
+      <lcpc-tile name="gabineteInterior" ratio="1.8" ratio-m="2" sizes="(min-width: 760px) 38vw, calc(100vw - 2.5rem)" widths="360,560,668" class="c5 tile--short" pos="50% 50%" />
       <div class="tile tile--text c7">
         <h2 id="gamer">Seu computador é um PC gamer?</h2>
         <p>
@@ -106,7 +106,7 @@
     </div>
   </section>
 
-  <lcpc-faq set="computador" title="Dúvidas sobre conserto de computador" lead="Sem vídeo, reinicializações, o que informar, informática em geral e all-in-one." />
+  <lcpc-faq set="computador" photo="bancada" photo-pos="50% 45%" photo-ratio="1.6" title="Dúvidas sobre conserto de computador" lead="Sem vídeo, reinicializações, o que informar, informática em geral e all-in-one." />
 
   <lcpc-cta-band
     title="Descreva o que acontece ao ligar o computador"

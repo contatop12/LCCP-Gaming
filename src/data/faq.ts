@@ -56,7 +56,7 @@ export const faq = {
     {
       question: 'Um upgrade garante mais FPS?',
       answer:
-        'Não dá para prometer um número antes de avaliar a máquina. O resultado depende do jogo, da resolução e de qual peça está limitando o PC. Depois do serviço, os testes de desempenho, temperatura e estabilidade mostram como o conjunto se comporta sob carga.',
+        'Não dá para prometer um número antes de avaliar a máquina. O resultado depende do jogo, da resolução e de qual peça está limitando o PC. Quando fazem parte do serviço, os testes de desempenho, temperatura e estabilidade mostram como o conjunto se comporta sob carga.',
     },
     {
       question: 'O que informar para pedir orçamento de montagem?',
@@ -110,7 +110,7 @@ export const faq = {
     {
       question: 'Computador reiniciando sozinho é vírus?',
       answer:
-        'Pode ser, mas a causa também pode estar na temperatura, na memória, na fonte ou no próprio sistema. O diagnóstico separa defeito de hardware de problema de software, e isso define se a solução é trocar uma peça, fazer manutenção, formatar ou remover programas maliciosos.',
+        'Pode ser, mas a causa também pode estar na temperatura, na memória, na fonte ou no próprio sistema. O diagnóstico ajuda a separar defeito de hardware de problema de software, o que orienta se o caminho é trocar uma peça, fazer manutenção, formatar ou remover programas maliciosos.',
     },
     {
       question: 'O que informar para pedir orçamento de conserto de computador?',
@@ -142,7 +142,7 @@ export const faq = {
     {
       question: 'Dá para fazer mais de um serviço de uma vez?',
       answer:
-        'Dá. É comum combinar, por exemplo, limpeza com troca de pasta térmica e upgrade de SSD. Descreva tudo na mesma mensagem e informe o modelo do equipamento para que o orçamento reúna os itens.',
+        'Sim, é possível pedir mais de um serviço na mesma mensagem, por exemplo limpeza com troca de pasta térmica e upgrade de SSD. Descreva tudo e informe o modelo do equipamento para que o orçamento considere os itens.',
     },
     {
       question: 'Quanto custa um serviço do catálogo?',
@@ -159,7 +159,7 @@ export const faq = {
     {
       question: 'Quais são os horários de atendimento?',
       answer:
-        'Os horários ainda não estão publicados neste site. Pergunte pelo WhatsApp antes de ir até a Vila Marari, para confirmar se há alguém na bancada.',
+        'Os horários ainda não estão publicados neste site. Pergunte pelo WhatsApp antes de ir até a Vila Marari.',
     },
     {
       question: 'Vocês fazem retirada e entrega?',
@@ -174,7 +174,7 @@ export const faq = {
     {
       question: 'Preciso avisar antes de levar o equipamento?',
       answer:
-        'Avise pelo WhatsApp, informando o equipamento e o que está acontecendo. Assim a conversa já começa com os dados do orçamento e as condições do atendimento ficam combinadas.',
+        'Avise pelo WhatsApp, informando o equipamento e o que está acontecendo. Assim a conversa já começa com os dados do orçamento e as condições de atendimento podem ser combinadas.',
     },
   ],
 } satisfies Record<string, FaqItem[]>;

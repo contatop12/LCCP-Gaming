@@ -35,11 +35,11 @@ const desktop = { viewport: { width: 1440, height: 900 } };
       await page.goto(BASE + route, { waitUntil: 'load' });
       const over = await page.evaluate(() => {
         const doc = document.documentElement.scrollWidth - document.documentElement.clientWidth;
-        // Elementos cortados por um ancestral com overflow oculto (faixa em movimento, trilhas de circuito) não criam rolagem.
+        // Elementos cortados por um ancestral com overflow oculto ou que rola por dentro (trilhas de circuito, faixas que rolam no celular) não criam rolagem da página.
         const clipped = (el) => {
           for (let node = el.parentElement; node && node !== document.body; node = node.parentElement) {
             const cs = getComputedStyle(node);
-            if (['hidden', 'clip'].includes(cs.overflowX) && node.getBoundingClientRect().right <= innerWidth + 1) return true;
+            if (['hidden', 'clip', 'auto', 'scroll'].includes(cs.overflowX) && node.getBoundingClientRect().right <= innerWidth + 1) return true;
           }
           return false;
         };
@@ -85,7 +85,9 @@ const desktop = { viewport: { width: 1440, height: 900 } };
   const links = page.locator('.nav-mobile nav a');
   await summary.tap();
   const first = (await links.first().textContent()).trim();
-  ok('Menu abre e PC Gamer é o primeiro item', (await links.first().isVisible()) && first === 'PC Gamer', first);
+  ok('Menu abre e Conserto de notebook é o primeiro item (decisão do cliente: notebook antes de PC Gamer)', (await links.first().isVisible()) && first === 'Conserto de notebook', first);
+  const order = (await links.allTextContents()).map((t) => t.trim()).join(' > ');
+  ok('Ordem do menu do celular: notebook, computador, PC Gamer, serviços, sobre, contato', order === 'Conserto de notebook > Conserto de computador > PC Gamer > Serviços > Sobre > Contato', order);
   const box = await page.evaluate(() => {
     const nav = document.querySelector('.nav-mobile nav').getBoundingClientRect();
     const bar = document.querySelector('.mobile-cta');
@@ -96,8 +98,8 @@ const desktop = { viewport: { width: 1440, height: 900 } };
   ok('Esc fecha o menu', !(await links.first().isVisible()));
   await summary.tap();
   await links.nth(1).tap();
-  await page.waitForURL('**/conserto-de-notebook/');
-  ok('Link do menu navega', page.url().endsWith('/conserto-de-notebook/'));
+  await page.waitForURL('**/conserto-de-computador/');
+  ok('Link do menu navega', page.url().endsWith('/conserto-de-computador/'));
   await ctx.close();
 }
 
@@ -228,7 +230,8 @@ const desktop = { viewport: { width: 1440, height: 900 } };
   await page.waitForTimeout(200);
   const atTop = await page.evaluate(() => getComputedStyle(document.querySelector('.mobile-cta')).visibility);
   ok('Barra some com o CTA do hero visível', atTop === 'hidden', atTop);
-  await page.evaluate(() => document.querySelector('#sintomas').scrollIntoView({ behavior: 'instant' }));
+  // Em #trabalho não há botão principal na tela (no seletor de sintomas há, e a barra se esconde para não repetir o botão).
+  await page.evaluate(() => document.querySelector('#trabalho').scrollIntoView({ behavior: 'instant' }));
   await page.waitForTimeout(250);
   const mid = await page.evaluate(() => getComputedStyle(document.querySelector('.mobile-cta')).visibility);
   ok('Barra aparece ao rolar', mid === 'visible', mid);
@@ -627,12 +630,13 @@ const desktop = { viewport: { width: 1440, height: 900 } };
   const touch = await browser.newContext(mobile);
   const tp = await touch.newPage();
   await tp.goto(BASE + '/', { waitUntil: 'load' });
-  await tp.evaluate(() => document.querySelector('#trabalho .tile__img').scrollIntoView({ block: 'center' }));
+  // No celular a galeria de #trabalho é uma faixa que rola: a rolagem da página não a move, então o teste usa a foto de Luis (fora de faixas).
+  await tp.evaluate(() => document.querySelector('#quem-cuida .tile__img').scrollIntoView({ block: 'center' }));
   await tp.waitForTimeout(500);
-  const touchLit = await tp.evaluate(() => getComputedStyle(document.querySelector('#trabalho .tile__img')).filter);
+  const touchLit = await tp.evaluate(() => getComputedStyle(document.querySelector('#quem-cuida .tile__img')).filter);
   await tp.evaluate(() => window.scrollTo(0, 0));
   await tp.waitForTimeout(400);
-  const touchDim = await tp.evaluate(() => getComputedStyle(document.querySelector('#trabalho .tile__img')).filter);
+  const touchDim = await tp.evaluate(() => getComputedStyle(document.querySelector('#quem-cuida .tile__img')).filter);
   ok('Celular (toque): a foto liga ao rolar até o centro e volta a dessaturar, sem depender de hover', sat(touchLit) > 0.95 && sat(touchDim) < 0.75, `${touchDim} -> ${touchLit}`);
   await touch.close();
 
@@ -770,6 +774,143 @@ const desktop = { viewport: { width: 1440, height: 900 } };
     }
     ok('Âncoras internas caem no começo da tela', miss.length === 0, miss.join(' | '));
     await ctx.close();
+  }
+}
+
+// 19. Revisão 3: sanfonas (inclusive âncoras), faixas que rolam, orçamento de altura, circuito de "Como funciona" e linha de progresso
+{
+  // 19a. Sanfonas no celular: começam fechadas, abrem ao toque, e toda âncora que aponta para dentro delas as abre
+  const ctx = await browser.newContext(mobile);
+  const page = await ctx.newPage();
+  await page.goto(BASE + '/servicos/', { waitUntil: 'load' });
+  const state = await page.evaluate(() => {
+    const all = [...document.querySelectorAll('details.acc')];
+    return { n: all.length, open: all.filter((d) => d.open).length, listsHidden: all.every((d) => d.getBoundingClientRect().height < 80) };
+  });
+  ok('Celular: /servicos/ começa com todas as sanfonas fechadas e as listas fora da tela', state.n >= 10 && state.open === 0 && state.listsHidden, JSON.stringify(state));
+  await page.locator('#limpeza summary').tap();
+  ok('Celular: tocar no botão abre a sanfona e mostra a lista completa', await page.evaluate(() => { const d = document.querySelector('#limpeza details'); return d.open && d.querySelector('ul').getBoundingClientRect().height > 100; }));
+  const miss = [];
+  for (const id of ['notebooks', 'diagnostico', 'desktops', 'limpeza', 'montagem-upgrade', 'formatacao', 'virus', 'atendimento', 'placas', 'dados', 'perifericos', 'avaliacao']) {
+    await page.goto(`${BASE}/servicos/#${id}`, { waitUntil: 'load' });
+    await page.waitForTimeout(450);
+    const r = await page.evaluate((anchor) => {
+      const el = document.getElementById(anchor);
+      const d = el.querySelector('details');
+      return { open: d.open, list: Math.round(d.querySelector('ul').getBoundingClientRect().height), top: Math.round(el.getBoundingClientRect().top) };
+    }, id);
+    if (!r.open || r.list < 40 || r.top < -5 || r.top > 220) miss.push(`${id} ${JSON.stringify(r)}`);
+  }
+  ok('Celular: toda âncora /servicos/#categoria (vinda de outra página) abre a sanfona e cai no começo da tela', miss.length === 0, miss.join(' | '));
+  await page.goto(BASE + '/servicos/', { waitUntil: 'load' });
+  await page.locator('.service-index a[href="#placas"]').tap();
+  await page.waitForTimeout(600);
+  ok('Celular: link do índice do topo (na mesma página) abre a sanfona da categoria', await page.evaluate(() => document.querySelector('#placas details').open));
+  await page.goto(BASE + '/conserto-de-computador/#componentes', { waitUntil: 'load' });
+  await page.waitForTimeout(450);
+  ok('Celular: /conserto-de-computador/#componentes abre a lista da troca de componentes', await page.evaluate(() => { const d = document.querySelector('#componentes details'); return d.open && d.querySelector('li').getBoundingClientRect().height > 10; }));
+  await ctx.close();
+
+  // Sem JavaScript: o celular abre pelo toque (nativo) e o computador mostra tudo, sem botão
+  const noJsMobile = await browser.newContext({ ...mobile, javaScriptEnabled: false });
+  const nm = await noJsMobile.newPage();
+  await nm.goto(BASE + '/servicos/', { waitUntil: 'load' });
+  await nm.locator('#placas summary').tap();
+  ok('Sem JavaScript (celular): a sanfona abre pelo toque e a lista fica legível', await nm.evaluate(() => document.querySelector('#placas details').open && document.querySelector('#placas li').getBoundingClientRect().height > 10));
+  await noJsMobile.close();
+  for (const [label, options] of [['computador sem JavaScript', { ...desktop, javaScriptEnabled: false }], ['computador com JavaScript', desktop]]) {
+    const c = await browser.newContext(options);
+    const p = await c.newPage();
+    await p.goto(BASE + '/servicos/', { waitUntil: 'load' });
+    const rows = await p.evaluate(() => [...document.querySelectorAll('details.acc')].map((d) => ({ summary: getComputedStyle(d.querySelector('summary')).display, list: Math.round(d.querySelector('ul').getBoundingClientRect().height) })));
+    ok(`Sanfonas em ${label}: listas de todas as categorias à vista e sem botão`, rows.length >= 10 && rows.every((r) => r.list > 40 && r.summary === 'none'), JSON.stringify(rows.slice(0, 3)));
+    await c.close();
+  }
+
+  // 19b. Faixas que rolam no celular: cabem na tela, não criam rolagem da página, rolam de fato e têm acesso por teclado
+  const sc = await browser.newContext(mobile);
+  const sp = await sc.newPage();
+  const bad = [];
+  for (const route of ROUTES) {
+    await sp.goto(BASE + route, { waitUntil: 'load' });
+    const info = await sp.evaluate(() => [...document.querySelectorAll('.scroll-m, .index-chips, .jump, .xray__list, .sx__choices ul')].filter((el) => el.getBoundingClientRect().width > 0).map((el) => ({ cls: String(el.className).slice(0, 28), scrolls: el.scrollWidth > el.clientWidth + 2, w: Math.round(el.getBoundingClientRect().width), tab: el.tabIndex, kids: el.querySelectorAll('a, button').length, doc: document.documentElement.scrollWidth })));
+    for (const i of info) {
+      if (i.doc > 390) bad.push(`${route} página com rolagem lateral (${i.doc}px)`);
+      if (i.w > 392) bad.push(`${route} ${i.cls} com ${i.w}px`);
+      if (i.tab < 0 && !i.kids) bad.push(`${route} ${i.cls} sem acesso por teclado`);
+    }
+    if (route === '/' && !info.some((i) => i.scrolls)) bad.push('/ sem nenhuma faixa que rola');
+  }
+  ok('Faixas que rolam (celular): cabem na tela, não criam rolagem da página e têm acesso por teclado', bad.length === 0, bad.slice(0, 5).join(' | '));
+  await sp.goto(BASE + '/', { waitUntil: 'load' });
+  const gallery = sp.locator('[aria-label^="Fotos reais da bancada"]');
+  await gallery.scrollIntoViewIfNeeded();
+  await gallery.focus();
+  await sp.keyboard.press('ArrowRight');
+  await sp.keyboard.press('ArrowRight');
+  await sp.waitForTimeout(500);
+  ok('Galeria da home (celular): foco e setas do teclado rolam a faixa para o lado', await gallery.evaluate((el) => el.scrollLeft > 20 && el.scrollWidth > el.clientWidth), String(await gallery.evaluate((el) => el.scrollLeft)));
+  await sp.goto(BASE + '/conserto-de-notebook/#superaquecimento', { waitUntil: 'load' });
+  await sp.waitForTimeout(700);
+  const inView = await sp.evaluate(() => { const b = document.getElementById('superaquecimento').getBoundingClientRect(); return { left: Math.round(b.left), right: Math.round(b.right), top: Math.round(b.top), doc: document.documentElement.scrollWidth }; });
+  ok('Âncora dentro de faixa que rola (/conserto-de-notebook/#superaquecimento): o cartão aparece inteiro na tela e a página não desloca', inView.left >= -1 && inView.right <= 391 && inView.top > -5 && inView.top < 700 && inView.doc <= 390, JSON.stringify(inView));
+  await sc.close();
+
+  // 19c. Orçamento de altura no celular (390 px): início, serviços e PC gamer
+  {
+    const c = await browser.newContext(mobile);
+    const p = await c.newPage();
+    const heights = {};
+    for (const [route, limit] of [['/', 6500], ['/servicos/', 7500], ['/pc-gamer/', 7500]]) {
+      await p.goto(BASE + route, { waitUntil: 'load' });
+      await p.waitForTimeout(300);
+      heights[route] = [await p.evaluate(() => document.documentElement.scrollHeight), limit];
+    }
+    ok('Altura no celular (390 px) dentro do orçamento: início até 6.500 px, serviços e PC gamer até 7.500 px', Object.values(heights).every(([h, limit]) => h <= limit), JSON.stringify(heights));
+    await c.close();
+  }
+
+  // 19d. Linha de progresso (scroll timeline) e circuito de "Como funciona" (acende em sequência, sem JavaScript)
+  {
+    const c = await browser.newContext(desktop);
+    const p = await c.newPage();
+    await p.goto(BASE + '/', { waitUntil: 'load' });
+    const supported = await p.evaluate(() => CSS.supports('animation-timeline: scroll()') && CSS.supports('animation-timeline: view()'));
+    if (!supported) ok('Linha de progresso e circuito: navegador sem animation-timeline (ficam estáticos e acesos)', true);
+    else {
+      const scaleOf = async () => p.evaluate(() => { const m = new DOMMatrix(getComputedStyle(document.querySelector('.site-header'), '::after').transform); return +m.a.toFixed(3); });
+      const top = await scaleOf();
+      await p.evaluate(() => window.scrollTo(0, (document.documentElement.scrollHeight - innerHeight) / 2));
+      await p.waitForTimeout(350);
+      const mid = await scaleOf();
+      await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await p.waitForTimeout(350);
+      const end = await scaleOf();
+      ok('Linha de progresso sob o cabeçalho cresce com a rolagem (0 no topo, cerca de metade no meio, cheia no fim)', top < 0.02 && mid > 0.35 && mid < 0.65 && end > 0.98, `${top} | ${mid} | ${end}`);
+
+      const lit = async () => p.evaluate(() => [...document.querySelectorAll('.steps--circuit li')].map((li) => +(+getComputedStyle(li, '::after').opacity).toFixed(2)));
+      const samples = [];
+      for (const fraction of [0.95, 0.8, 0.65, 0.5, 0.35, 0.2]) {
+        await p.evaluate((f) => { const el = document.querySelector('.steps--circuit'); window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top - innerHeight * f); }, fraction);
+        await p.waitForTimeout(250);
+        samples.push(await lit());
+      }
+      const ordered = samples.every(([a, b, c3]) => a >= b - 0.02 && b >= c3 - 0.02);
+      ok('Circuito de "Como funciona": ao entrar na tela está apagado, acende na ordem 1, 2, 3 e termina todo aceso', samples[0].every((v) => v < 0.5) && ordered && samples.some(([a, , c3]) => a > 0.95 && c3 < 0.6) && samples.at(-1).every((v) => v > 0.95), JSON.stringify(samples));
+    }
+    await c.close();
+
+    const rm = await browser.newContext({ ...desktop, reducedMotion: 'reduce' });
+    const rp = await rm.newPage();
+    await rp.goto(BASE + '/', { waitUntil: 'load' });
+    const still = await rp.evaluate(() => ({
+      progress: getComputedStyle(document.querySelector('.site-header'), '::after').content,
+      steps: [...document.querySelectorAll('.steps--circuit li')].map((li) => getComputedStyle(li, '::after').opacity + '/' + getComputedStyle(li, '::after').animationName),
+      line: getComputedStyle(document.querySelector('.steps--circuit'), '::after').animationName,
+      running: document.getAnimations().filter((a) => a.playState === 'running').length,
+    }));
+    ok('Movimento reduzido: sem linha de progresso, circuito todo aceso e nenhuma animação rodando', still.progress === 'none' && still.steps.every((s) => s === '1/none') && still.line === 'none' && still.running === 0, JSON.stringify(still));
+    await rm.close();
   }
 }
 

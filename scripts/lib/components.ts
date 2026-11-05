@@ -12,7 +12,7 @@ import { symptomSets, type SymptomSetName } from '../../src/data/symptoms.ts';
 import { whatsappContexts, whatsappUrl, type WhatsappContext } from '../../src/data/whatsapp.ts';
 import { xrayCrop, xrayParts } from '../../src/data/xray.ts';
 import { classes, esc, fail, parseAttrs, type Attrs } from './html.ts';
-import { placeholderColor, source, srcset, variant, type Source } from './images.ts';
+import { croppedSize, placeholderColor, source, srcset, variant, type Crop, type Source } from './images.ts';
 
 /** Estado de uma página durante a expansão: usado nas mensagens de erro e para levar itens ao <head>. */
 export interface PageImage {
@@ -71,6 +71,14 @@ function required(attrs: Attrs, name: string, where: string): string {
   return value;
 }
 
+function numberAttr(attrs: Attrs, name: string, where: string): number | undefined {
+  const value = attrs.get(name);
+  if (value === undefined) return undefined;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0.4 || parsed > 4) fail(where, `atributo "${name}" inválido: ${value} (use uma proporção largura/altura entre 0.4 e 4, ex.: 1.6)`);
+  return parsed;
+}
+
 const numbers = (value: string | undefined, where: string): number[] => {
   if (!value) fail(where, 'atributo de larguras obrigatório');
   const list = value.split(',').map((part) => Number(part.trim()));
@@ -112,16 +120,23 @@ export interface PictureOptions {
   placeholder?: string;
   /** Estilo inline extra (ex.: object-position). */
   style?: string;
+  /** Recorte para a proporção do bloco no computador (e no celular, se não houver `mobileCrop`). */
+  crop?: Crop;
+  /** Recorte próprio para telas até 759 px. */
+  mobileCrop?: Crop;
 }
 
+/** Larguras padrão das fotos: degraus próximos para o navegador baixar a menor variante que cobre o bloco (celular 1,75x e 2x incluídos). */
+export const DEFAULT_WIDTHS = [320, 440, 560, 720, 960, 1200];
+
 export async function picture(image: Source, alt: string, widths: number[], sizes: string, options: PictureOptions = {}): Promise<string> {
-  const { class: className, priority = false, eager = false, art, placeholder, style } = options;
+  const { class: className, priority = false, eager = false, art, placeholder, style, crop, mobileCrop } = options;
   const [avif, webp, fallback] = await Promise.all([
-    srcset(image, widths, 'avif'),
-    srcset(image, widths, 'webp'),
-    srcset(image, widths, image.format),
+    srcset(image, widths, 'avif', crop),
+    srcset(image, widths, 'webp', crop),
+    srcset(image, widths, image.format, crop),
   ]);
-  const dims = (img: Source) => `width="${img.width}" height="${img.height}"`;
+  const dims = (img: { width: number; height: number }) => `width="${img.width}" height="${img.height}"`;
   let artSources = '';
   if (art) {
     const [artAvif, artWebp] = await Promise.all([srcset(art.image, art.widths, 'avif'), srcset(art.image, art.widths, 'webp')]);
@@ -129,14 +144,22 @@ export async function picture(image: Source, alt: string, widths: number[], size
       `<source type="image/avif" media="${esc(art.media)}" srcset="${artAvif.attribute}" sizes="${esc(art.sizes)}" ${dims(art.image)}>` +
       `<source type="image/webp" media="${esc(art.media)}" srcset="${artWebp.attribute}" sizes="${esc(art.sizes)}" ${dims(art.image)}>`;
   }
+  if (mobileCrop) {
+    const [mAvif, mWebp] = await Promise.all([srcset(image, widths, 'avif', mobileCrop), srcset(image, widths, 'webp', mobileCrop)]);
+    const media = '(max-width: 759px)';
+    const mDims = dims(croppedSize(image, mobileCrop));
+    artSources +=
+      `<source type="image/avif" media="${media}" srcset="${mAvif.attribute}" sizes="${esc(sizes)}" ${mDims}>` +
+      `<source type="image/webp" media="${media}" srcset="${mWebp.attribute}" sizes="${esc(sizes)}" ${mDims}>`;
+  }
   const inline = [placeholder ? `background-color:${placeholder}` : '', style ?? ''].filter(Boolean).join(';');
   const img =
-    `<img${className ? ` class="${esc(className)}"` : ''} src="${fallback.largest}" alt="${esc(alt)}" ${dims(image)}` +
+    `<img${className ? ` class="${esc(className)}"` : ''} src="${fallback.largest}" alt="${esc(alt)}" ${dims(croppedSize(image, crop))}` +
     ` loading="${priority || eager ? 'eager' : 'lazy'}" decoding="${priority ? 'sync' : 'async'}"${priority ? ' fetchpriority="high"' : eager ? '' : ' fetchpriority="low"'}${inline ? ` style="${esc(inline)}"` : ''}>`;
   return (
     `<picture>${artSources}` +
-    `<source type="image/avif" srcset="${avif.attribute}" sizes="${esc(sizes)}" ${dims(image)}>` +
-    `<source type="image/webp" srcset="${webp.attribute}" sizes="${esc(sizes)}" ${dims(image)}>${img}</picture>`
+    `<source type="image/avif" srcset="${avif.attribute}" sizes="${esc(sizes)}" ${dims(croppedSize(image, crop))}>` +
+    `<source type="image/webp" srcset="${webp.attribute}" sizes="${esc(sizes)}" ${dims(croppedSize(image, crop))}>${img}</picture>`
   );
 }
 
@@ -163,15 +186,29 @@ interface PhotoOptions {
   morph?: string;
   /** Sem legenda (a imagem é um fundo de bloco com texto por cima). */
   bare?: boolean;
+  /** Proporção (largura/altura) do bloco no computador e no celular: a foto é recortada no build em torno de pos. */
+  ratio?: number;
+  ratioMobile?: number;
+}
+
+/** Recortes pedidos por atio e atio-m, com o enquadramento de pos (padrão 50% 50%). */
+function crops(options: PhotoOptions): { crop?: Crop; mobileCrop?: Crop } {
+  const pos = (options.pos ?? '50% 50%').split(/\s+/).map((part) => Number.parseFloat(part));
+  const focal: [number, number] = [Number.isFinite(pos[0]) ? pos[0]! : 50, Number.isFinite(pos[1]) ? pos[1]! : 50];
+  return {
+    crop: options.ratio ? { ratio: options.ratio, pos: focal } : undefined,
+    mobileCrop: options.ratioMobile ? { ratio: options.ratioMobile, pos: focal } : undefined,
+  };
 }
 
 async function photo(page: PageContext, image: SiteImage, sizes: string, options: PhotoOptions): Promise<string> {
   const src = await source(image.file);
   await track(page, image, src);
-  const inner = await picture(src, image.alt, options.widths ?? [480, 800, 1200], sizes, {
+  const inner = await picture(src, image.alt, options.widths ?? DEFAULT_WIDTHS, sizes, {
     priority: options.priority,
     placeholder: options.priority ? undefined : await placeholderColor(src),
     style: options.pos ? `object-position:${options.pos}` : undefined,
+    ...crops(options),
   });
   const caption = image.caption && !options.bare ? `<figcaption>${esc(image.caption)}</figcaption>` : '';
   return `<figure class="${classes('photo', options.class)}">${inner}${caption}</figure>`;
@@ -181,11 +218,12 @@ async function photo(page: PageContext, image: SiteImage, sizes: string, options
 async function tile(page: PageContext, image: SiteImage, sizes: string, options: PhotoOptions, body: string): Promise<string> {
   const src = await source(image.file);
   await track(page, image, src);
-  const inner = await picture(src, image.alt, options.widths ?? [480, 800, 1200], sizes, {
+  const inner = await picture(src, image.alt, options.widths ?? DEFAULT_WIDTHS, sizes, {
     class: 'tile__img',
     priority: options.priority,
     placeholder: options.priority ? undefined : await placeholderColor(src),
     style: options.pos ? `object-position:${options.pos}` : undefined,
+    ...crops(options),
   });
   const text = body.trim();
   const caption = !text && !options.bare && image.caption ? `<figcaption class="tile__cap">${esc(image.caption)}</figcaption>` : '';
@@ -247,7 +285,16 @@ function itemList(category: CatalogCategory, className: string, where: string, e
   return `<ul class="${esc(className)}">${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
 }
 
-/** Bloco de uma categoria em /servicos/: título, resumo e todos os itens publicados à vista. */
+/**
+ * Sanfona nativa (<details>) para listas longas. No celular começa fechada; de 760 px para cima o CSS mostra tudo e esconde o
+ * controle (sem JavaScript). O conteúdo continua no HTML e legível sem JavaScript. `acc.ts` abre a sanfona quando uma âncora
+ * aponta para ela ou para algo dentro dela.
+ */
+function accordion(label: string, body: string): string {
+  return `<details class="acc" data-acc><summary><span>${esc(label)}</span></summary><div class="acc__body">${body}</div></details>`;
+}
+
+/** Bloco de uma categoria em /servicos/: título e resumo sempre à vista; os itens publicados ficam em sanfona no celular. */
 function serviceTile(category: CatalogCategory, className: string, where: string): string {
   const primary = category.priority === 'foco';
   const cta = category.whatsapp
@@ -259,9 +306,11 @@ function serviceTile(category: CatalogCategory, className: string, where: string
       })
     : '';
   const related = category.relatedPage ? `<a class="text-link" href="${esc(category.relatedPage.href)}">${esc(category.relatedPage.label)}</a>` : '';
+  const count = publishedItems(category.id).length;
+  const body = `${itemList(category, 'chips', where)}<div class="tile__actions">${cta}${related}</div>`;
   return (
     `<article id="${category.id}" class="${classes('tile tile--service', primary ? '' : 'tile--secondary', className)}"><div class="tile__body"><h3>${esc(category.title)}</h3><p>${esc(category.summary)}</p>` +
-    `${itemList(category, 'chips', where)}<div class="tile__actions">${cta}${related}</div></div></article>`
+    `${accordion(count === 1 ? 'Ver o serviço' : `Ver os ${count} serviços`, body)}</div></article>`
   );
 }
 
@@ -400,6 +449,8 @@ const tags: Record<string, Renderer> = {
         pos: attrs.get('pos'),
         morph: attrs.get('morph'),
         bare: attrs.has('bare'),
+        ratio: numberAttr(attrs, 'ratio', where),
+        ratioMobile: numberAttr(attrs, 'ratio-m', where),
       },
       inner,
     );
@@ -459,7 +510,9 @@ const tags: Record<string, Renderer> = {
 
   'lcpc-catalog': (attrs, _inner, page) => {
     const where = `${page.where} <lcpc-catalog>`;
-    return itemList(requireCategory(attrs.get('category'), where), attrs.get('class') ?? 'ticks', where, attrs.get('exclude'));
+    const list = itemList(requireCategory(attrs.get('category'), where), attrs.get('class') ?? 'ticks', where, attrs.get('exclude'));
+    const label = attrs.get('collapse');
+    return label ? accordion(label, list) : list;
   },
 
   'lcpc-faq': async (attrs, _inner, page) => {
@@ -469,7 +522,7 @@ const tags: Record<string, Renderer> = {
     let side = '';
     if (attrs.has('photo')) {
       const image = requireImage(attrs.get('photo'), where);
-      side = await tile(page, image, '(min-width: 900px) 32vw, 100vw', { class: 'faq-layout__photo', pos: attrs.get('photo-pos') }, '');
+      side = await tile(page, image, '(min-width: 900px) 32vw, 100vw', { class: 'faq-layout__photo', pos: attrs.get('photo-pos'), ratio: numberAttr(attrs, 'photo-ratio', where) }, '');
     }
     return faqList(set, attrs.get('title') ?? 'Perguntas frequentes', attrs.get('lead'), side, where);
   },
@@ -529,7 +582,7 @@ const tags: Record<string, Renderer> = {
     const items = steps[set as keyof typeof steps]
       .map((step) => `<li><strong class="steps__name">${esc(step.name)}</strong><p>${esc(step.text)}</p></li>`)
       .join('');
-    return `<ol class="steps steps--cards">${items}</ol>`;
+    return `<ol class="steps steps--circuit">${items}</ol>`;
   },
 
   'lcpc-symptoms': (attrs, _inner, page) => {

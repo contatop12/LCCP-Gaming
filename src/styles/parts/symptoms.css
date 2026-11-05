@@ -4,6 +4,10 @@
   gap: var(--s-3);
 }
 
+.sx > * {
+  min-width: 0;
+}
+
 .sx__choices ul {
   display: flex;
   flex-wrap: wrap;
@@ -105,6 +109,58 @@
 
 .sx__cta .btn {
   width: 100%;
+}
+
+/* Celular e tablet: as opções viram uma linha que rola, e a tela de diagnóstico sobe */
+@media (max-width: 559px) {
+  .sx__panel {
+    padding: var(--s-4);
+  }
+
+  .sx__panel h3 {
+    font-size: 1.625rem;
+  }
+
+  .sx__cols {
+    gap: var(--s-3);
+  }
+
+  .sx__cols .ticks li {
+    padding-block: 0;
+  }
+
+  .sx__cols .ticks li::before {
+    top: 0.4rem;
+  }
+
+  .sx__links {
+    gap: 0 var(--s-4);
+  }
+}
+
+@media (max-width: 959px) {
+  .sx__choices ul {
+    flex-wrap: nowrap;
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
+
+  .sx__choices li {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .sx__choices a,
+  .sx__tab {
+    width: auto;
+    white-space: nowrap;
+  }
 }
 
 @media (min-width: 560px) {

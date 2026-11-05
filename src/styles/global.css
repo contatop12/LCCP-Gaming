@@ -242,6 +242,40 @@ a:hover {
   width: 100%;
 }
 
+/* Botão de WhatsApp em formato de cartão: título e uma linha de apoio */
+.btn--card {
+  justify-content: flex-start;
+  min-height: 3.5rem;
+  text-align: left;
+}
+
+.btn--card span {
+  display: block;
+}
+
+.btn--card strong {
+  display: block;
+  font-size: 1.1875rem;
+  line-height: 1.15;
+}
+
+.btn--card small {
+  display: block;
+  margin-top: var(--s-1);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.btn--primary.btn--card small {
+  color: var(--ink);
+}
+
+.btn--ghost.btn--card small {
+  color: var(--muted);
+}
+
 .text-link {
   font-weight: 600;
 }
@@ -498,8 +532,19 @@ main {
 
 .hero__media {
   position: relative;
+  isolation: isolate;
   margin-inline: calc(var(--gutter) * -1);
   padding-bottom: calc(var(--cut) + var(--s-2));
+}
+
+/* A luz do gabinete vaza para o grafite em volta: um brilho largo e suave, na cor da logo, atrás da foto */
+.hero__media::before {
+  content: '';
+  position: absolute;
+  inset: 0 -10% 0;
+  z-index: -1;
+  background: radial-gradient(ellipse 52% 58% at 50% 48%, rgba(250, 106, 10, 0.34), rgba(250, 106, 10, 0.12) 55%, transparent 78%);
+  pointer-events: none;
 }
 
 .hero__media img {
@@ -523,6 +568,7 @@ main {
 
 .phero__grid {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-5);
   align-items: start;
 }
@@ -687,7 +733,7 @@ main {
   z-index: 1;
   width: 100%;
   padding: var(--s-7) var(--s-5) var(--s-5);
-  background: linear-gradient(to top, rgba(21, 23, 26, 0.95) 0%, rgba(21, 23, 26, 0.82) 55%, transparent 100%);
+  background: linear-gradient(to top, rgba(21, 23, 26, 0.92) 0%, rgba(21, 23, 26, 0.72) 55%, transparent 100%);
 }
 
 .tile--text .tile__body,
@@ -899,22 +945,6 @@ main {
   line-height: 1.15;
 }
 
-.steps--cards li {
-  padding: var(--s-4) var(--s-5) var(--s-5) var(--s-8);
-  background: var(--graphite-2);
-  clip-path: polygon(0 0, calc(100% - var(--tcut)) 0, 100% var(--tcut), 100% 100%, 0 100%);
-}
-
-.steps--cards li::before {
-  left: var(--s-4);
-  top: var(--s-4);
-}
-
-.steps--cards p {
-  margin-top: var(--s-1);
-  color: var(--muted);
-}
-
 .service-index {
   margin-top: var(--s-4);
 }
@@ -979,34 +1009,6 @@ main {
 .phero__media--single {
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
-}
-
-/* Galeria de fotos: no celular, duas colunas com a primeira em largura total (a legenda fica no texto alternativo) */
-@media (max-width: 759px) {
-  .bento--gallery {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .bento--gallery > * {
-    grid-column: span 1;
-  }
-
-  .bento--gallery > :first-child,
-  .bento--gallery > :last-child:nth-child(even) {
-    grid-column: 1 / -1;
-  }
-
-  .bento--gallery .tile--photo {
-    min-height: 9rem;
-  }
-
-  .bento--gallery > :first-child {
-    min-height: 13rem;
-  }
-
-  .bento--gallery .tile__cap {
-    display: none;
-  }
 }
 
 /* Ficha de informações (PC gamer) */
@@ -1396,17 +1398,406 @@ main {
   margin-top: var(--s-1);
 }
 
+/*
+  Faixa que rola na horizontal no celular (galerias, blocos de equipamento, fichas, chips): uma linha em vez de uma pilha.
+  Ocupa a largura da tela (margem negativa = a margem da página) e rola só por dentro, então a página não ganha rolagem lateral.
+  Os cartões seguintes aparecem pela metade para mostrar que há mais. Teclado: quem tem links dentro rola ao focar; as faixas
+  sem link levam tabindex="0" e um nome (role="region"). De 760 px para cima voltam a ser grade normal.
+*/
+@media (max-width: 759px) {
+  .scroll-m,
+  .index-chips,
+  .jump,
+  .xray .xray__list {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--s-3);
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
+
+  .scroll-m > *,
+  .index-chips > *,
+  .jump > *,
+  .xray .xray__list > * {
+    flex: 0 0 min(78%, 19rem);
+    scroll-snap-align: start;
+  }
+
+  .index-chips > * {
+    flex: 0 0 auto;
+  }
+
+  .scroll-m:focus-visible {
+    outline-offset: -3px;
+  }
+
+  /* Galeria: fotos baixas e largas, uma ao lado da outra (a legenda fica no texto alternativo) */
+  .bento--gallery > * {
+    flex: 0 0 min(64%, 15rem);
+  }
+
+  .bento--gallery .tile--photo {
+    min-height: 11rem;
+  }
+
+  .bento--gallery .tile__cap {
+    display: none;
+  }
+}
+
+/* Sanfona nativa (listas longas): fechada no celular; de 760 px para cima tudo à vista e sem controle */
+.acc {
+  margin-top: var(--s-3);
+}
+
+.acc > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  min-height: 3rem;
+  padding: 0 var(--s-4);
+  background: rgba(255, 255, 255, 0.07);
+  border-left: 3px solid var(--accent);
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+
+.acc > summary::-webkit-details-marker {
+  display: none;
+}
+
+.acc > summary::after {
+  content: '+';
+  flex: none;
+  color: var(--accent-strong);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.acc[open] > summary::after {
+  content: '\2212';
+}
+
+.acc > summary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.acc__body {
+  padding-top: var(--s-3);
+}
+
+.acc .chips,
+.acc .ticks {
+  margin-top: 0;
+}
+
+@media (min-width: 760px) {
+  @supports selector(::details-content) {
+    .acc::details-content {
+      content-visibility: visible;
+    }
+
+    .acc > summary {
+      display: none;
+    }
+
+    .acc {
+      margin-top: 0;
+    }
+
+    .acc__body {
+      padding-top: 0;
+    }
+
+    .tile--service .acc {
+      margin-top: var(--s-3);
+    }
+  }
+}
+
+/* "Como funciona" como circuito: uma trilha liga os passos e acende em sequência (aprimoramento; sem suporte, tudo aceso) */
+.steps--circuit {
+  position: relative;
+  gap: var(--s-5);
+  margin-top: var(--s-4);
+  --draw-x: 1;
+  --draw-y: 0;
+}
+
+.steps--circuit::before,
+.steps--circuit::after {
+  content: '';
+  position: absolute;
+  left: calc(1.25rem - 1px);
+  top: 1.25rem;
+  bottom: 1.25rem;
+  width: 2px;
+  background: var(--line);
+}
+
+.steps--circuit::after {
+  background: var(--accent);
+  transform-origin: 50% 0;
+}
+
+.steps--circuit li {
+  position: relative;
+  padding-left: var(--s-8);
+}
+
+.steps--circuit li::before,
+.steps--circuit li::after {
+  content: counter(passo);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--graphite-3);
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 700;
+  clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+}
+
+.steps--circuit li::after {
+  background: var(--accent);
+  color: var(--ink);
+}
+
+.steps--circuit .steps__name {
+  padding-top: var(--s-1);
+}
+
+.steps--circuit p {
+  margin-top: var(--s-1);
+  color: var(--muted);
+}
+
+/* Ponta da trilha: o botão fecha o circuito */
+.steps-end {
+  margin-top: var(--s-5);
+}
+
+/* Faixa tipográfica: o lema oficial grande, sobre uma foto real da bancada */
+.slogan {
+  min-height: 16rem;
+}
+
+.slogan .tile__body {
+  padding: var(--s-7) var(--s-5) var(--s-5);
+  background: linear-gradient(to top, rgba(21, 23, 26, 0.9) 0%, rgba(21, 23, 26, 0.5) 60%, transparent 100%);
+}
+
+.slogan .slogan__text {
+  margin: 0;
+  max-width: 14ch;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: clamp(2.75rem, 0.6rem + 11vw, 8.5rem);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.slogan .slogan__text em {
+  font-style: normal;
+  color: var(--accent-strong);
+}
+
+/* Cabeçalhos de seção com composições diferentes: centralizado, em escala grande e dividido em colunas */
+.head--center {
+  justify-items: center;
+  text-align: center;
+}
+
+.head--center h2,
+.head--center p {
+  margin-inline: auto;
+}
+
+.head--big h2 {
+  max-width: 14ch;
+  font-size: clamp(2.5rem, 1.2rem + 5.6vw, 5.75rem);
+  line-height: 0.95;
+}
+
+.slogan__text::after {
+  content: '.';
+  color: var(--accent-strong);
+}
+
+.band--split > .wrap > .actions {
+  grid-column: 1 / -1;
+}
+
+/* Celular: o que é só enfeite sai (as fotos ocultas nem baixam, são preguiçosas), os blocos ficam mais baixos e as pilhas encolhem */
+@media (max-width: 759px) {
+  .hide-m,
+  .phero__media .tile:not(.tile--wide),
+  .faq-layout__photo {
+    display: none;
+  }
+
+  .phero__media {
+    grid-template-rows: auto;
+  }
+
+  .phero__media .tile--wide {
+    min-height: 12rem;
+  }
+
+  .phero__media .tile--tall {
+    min-height: 15rem;
+  }
+
+  .tile--short {
+    min-height: 10rem;
+  }
+
+  .tile--portrait {
+    min-height: 10rem;
+  }
+
+  .hero__media {
+    padding-bottom: var(--cut);
+  }
+
+  .faq-layout,
+  .loc {
+    gap: var(--s-4);
+  }
+
+  :root {
+    --pad-t: var(--s-5);
+    --pad-b: calc(var(--cut) + var(--s-1));
+  }
+
+  body {
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
+  .answer p {
+    font-size: 1rem;
+  }
+
+  .faq__item summary {
+    min-height: 3rem;
+    padding-block: var(--s-2);
+  }
+
+  .faq__item h3 {
+    font-size: 1.1875rem;
+  }
+
+  .faq__item p {
+    padding-bottom: var(--s-4);
+  }
+
+  .location__address {
+    margin-top: var(--s-4);
+    font-size: 1.5rem;
+  }
+
+  .location__contacts {
+    margin-top: var(--s-4);
+  }
+
+  .steps--circuit {
+    gap: var(--s-3);
+  }
+
+  .steps__name {
+    font-size: 1.3125rem;
+  }
+
+  .hero .hint,
+  .faq-layout__head > p {
+    display: none;
+  }
+
+  .hero__text {
+    padding-block: var(--s-4) var(--s-3);
+  }
+
+  .actions {
+    margin-top: var(--s-4);
+  }
+
+  .cta-band {
+    padding-block: var(--s-5) calc(var(--cut) + var(--s-1));
+  }
+
+  .slogan {
+    min-height: 9.5rem;
+  }
+
+  .slogan .tile__body {
+    padding: var(--s-6) var(--s-4) var(--s-4);
+  }
+
+  .slogan .slogan__text {
+    font-size: clamp(2.5rem, 0.5rem + 10vw, 4rem);
+  }
+
+  .answer,
+  .tile--text,
+  .tile--service {
+    padding: var(--s-4);
+  }
+
+  .location__contacts {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: var(--s-3);
+  }
+
+  .location__contacts dd {
+    font-size: 1rem;
+  }
+
+  .location__contacts div:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .site-footer__grid > :nth-child(n + 3) {
+    grid-column: 1 / -1;
+  }
+
+  .site-footer__nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--s-4);
+  }
+}
+
 @media (min-width: 560px) {
   .ticks--two {
     columns: 2;
     column-gap: var(--s-6);
   }
 
-  .steps:not(.steps--tiles, .steps--cards) {
+  .steps:not(.steps--tiles, .steps--circuit) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .steps:not(.steps--tiles, .steps--cards) li {
+  .steps:not(.steps--tiles, .steps--circuit) li {
     padding-left: 0;
     padding-top: var(--s-7);
   }
@@ -1425,6 +1816,36 @@ main {
 }
 
 @media (min-width: 760px) {
+  .steps--circuit {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s-6);
+    --draw-x: 0;
+    --draw-y: 1;
+  }
+
+  .steps--circuit::before,
+  .steps--circuit::after {
+    left: 1.25rem;
+    right: 1.25rem;
+    top: calc(1.25rem - 1px);
+    bottom: auto;
+    width: auto;
+    height: 2px;
+  }
+
+  .steps--circuit::after {
+    transform-origin: 0 50%;
+  }
+
+  .steps--circuit li {
+    padding-left: 0;
+    padding-top: var(--s-8);
+  }
+
+  .head.head--center {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .c3 {
     grid-column: span 3;
   }
@@ -1508,7 +1929,7 @@ main {
 @media (min-width: 900px) {
   .hero__inner {
     display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: center;
     gap: var(--s-6);
   }
@@ -1523,7 +1944,7 @@ main {
   .hero__media img {
     width: auto;
     max-width: 100%;
-    max-height: min(66vh, 38rem);
+    max-height: min(76vh, 40rem);
     margin-inline: auto;
     -webkit-mask-image: radial-gradient(ellipse 62% 64% at 50% 50%, #000 62%, transparent 100%);
     mask-image: radial-gradient(ellipse 62% 64% at 50% 50%, #000 62%, transparent 100%);
@@ -1538,6 +1959,41 @@ main {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--s-7);
     align-items: center;
+  }
+
+  /* Seletor de sintomas em duas colunas: título e opções à esquerda, a "tela" do diagnóstico à direita */
+  .band--split > .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 19rem) minmax(0, 1fr);
+    column-gap: var(--s-6);
+    align-items: start;
+  }
+
+  .band--split .head {
+    display: block;
+    grid-column: 1;
+    margin-bottom: var(--s-4);
+  }
+
+  .band--split .head h2 {
+    font-size: clamp(1.75rem, 1rem + 1.6vw, 2.5rem);
+  }
+
+  .band--split .head p {
+    margin-top: var(--s-3);
+  }
+
+  .band--split .sx {
+    display: contents;
+  }
+
+  .band--split .sx__choices {
+    grid-column: 1;
+  }
+
+  .band--split .sx__screen {
+    grid-column: 2;
+    grid-row: 1 / span 2;
   }
 
   .faq-layout {
@@ -1564,7 +2020,23 @@ main {
   }
 
   .video-section__text {
-    align-self: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--s-5);
+  }
+
+  .video-section__text .actions {
+    margin-top: 0;
+  }
+
+  .video-section__text h2 {
+    font-size: clamp(2.5rem, 1.2rem + 3.4vw, 4.25rem);
+    line-height: 0.98;
+  }
+
+  .video-section__text > p {
+    font-size: 1.1875rem;
   }
 
   .strip:not(.strip--3) {
@@ -1663,9 +2135,9 @@ main {
   e as fotos mostram a cor natural. Só transform, opacity e (nas fotos) filter, que o Chrome anima no compositor.
 */
 @media (prefers-reduced-motion: no-preference) {
-  /* 1. Abertura: as luzes do gabinete "ligam" no carregamento. A foto já está na tela, então o LCP não espera. */
+  /* 1. Abertura: as luzes do gabinete "ligam" no carregamento (0,85 s, a partir de uma imagem já legível). A foto já está na tela, então o LCP não espera. */
   .hero__media img {
-    animation: boot 1.35s 0.12s linear both;
+    animation: boot 0.85s 0.04s linear both;
   }
 
   /* 2. Navegação entre páginas sem recarregar a tela: o cabeçalho e a barra do celular ficam parados. */
@@ -1699,23 +2171,19 @@ main {
 
 @keyframes boot {
   0% {
-    filter: saturate(0) brightness(0.3);
+    filter: saturate(0.2) brightness(0.55);
   }
 
-  18% {
+  24% {
+    filter: saturate(0.55) brightness(0.82);
+  }
+
+  34% {
     filter: saturate(0.25) brightness(0.62);
   }
 
-  26% {
-    filter: saturate(0.05) brightness(0.38);
-  }
-
-  48% {
-    filter: saturate(0.7) brightness(0.88);
-  }
-
-  58% {
-    filter: saturate(0.3) brightness(0.6);
+  66% {
+    filter: saturate(0.88) brightness(0.96);
   }
 
   100% {
@@ -1765,6 +2233,34 @@ main {
       animation-timeline: --trace;
       animation-range: entry 10% exit 90%;
     }
+
+    /* "Como funciona": a trilha se desenha e cada passo acende na ordem, conforme a lista sobe pela tela */
+    .steps--circuit {
+      view-timeline: --steps block;
+    }
+
+    .steps--circuit::after {
+      animation: trace-draw linear both;
+      animation-timeline: --steps;
+      animation-range: entry 35% cover 52%;
+    }
+
+    .steps--circuit li::after {
+      animation: node-on linear both;
+      animation-timeline: --steps;
+    }
+
+    .steps--circuit li:nth-child(1)::after {
+      animation-range: entry 30% entry 55%;
+    }
+
+    .steps--circuit li:nth-child(2)::after {
+      animation-range: entry 55% cover 30%;
+    }
+
+    .steps--circuit li:nth-child(3)::after {
+      animation-range: cover 28% cover 50%;
+    }
   }
 
   @media (prefers-reduced-motion: no-preference) and (hover: hover) {
@@ -1779,16 +2275,62 @@ main {
 
 @keyframes power-on {
   0% {
-    filter: saturate(0.45) brightness(0.86);
+    filter: saturate(0.66) brightness(0.93);
   }
 
   30%,
   70% {
-    filter: saturate(1.05) brightness(1);
+    filter: saturate(1.08) brightness(1.02);
   }
 
   100% {
-    filter: saturate(0.45) brightness(0.86);
+    filter: saturate(0.66) brightness(0.93);
+  }
+}
+
+@keyframes trace-draw {
+  from {
+    transform: scale(var(--draw-x), var(--draw-y));
+  }
+}
+
+@keyframes node-on {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+/* Linha fina de progresso da leitura: sob o cabeçalho (computador) e no topo da barra do celular. Sem JavaScript. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .site-header::after,
+    .mobile-cta::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      animation: read-progress linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    .site-header::after {
+      bottom: -1px;
+    }
+
+    .mobile-cta::before {
+      top: -1px;
+    }
+  }
+}
+
+@keyframes read-progress {
+  to {
+    transform: scaleX(1);
   }
 }
 

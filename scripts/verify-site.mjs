@@ -394,8 +394,33 @@ check(!/video-pc-gamer-capa\.jpg/.test(outsideNoscript.replace(/<script type="ap
 check(/data-sources="[^"]*\.webm\|video\/webm[^"]*;[^"]*\.mp4\|video\/mp4"/.test(gamerHtml), 'Vídeo sem WebM (AV1) antes do MP4 de reserva');
 check(existsSync(join(DIST, 'media/video-pc-gamer.webm')) && statSync(join(DIST, 'media/video-pc-gamer.webm')).size < statSync(join(DIST, 'media/video-pc-gamer.mp4')).size, 'WebM ausente ou maior que o MP4');
 
-const firstNav = (home?.html ?? '').match(/<nav class="nav-desktop"[\s\S]*?<a href="([^"]+)"/)?.[1];
-check(firstNav === '/pc-gamer/', `Primeiro item do menu é ${firstNav}`);
+// Decisão do cliente (substitui o brief original): notebook abre o menu, antes de PC Gamer.
+const desktopNav = [...((home?.html ?? '').match(/<nav class="nav-desktop"[\s\S]*?<\/nav>/)?.[0] ?? '').matchAll(/<a href="([^"]+)"/g)].map((m) => m[1]);
+check(
+  desktopNav.join(',') === '/conserto-de-notebook/,/conserto-de-computador/,/pc-gamer/,/servicos/,/sobre/,/contato/',
+  `Ordem do menu: ${desktopNav.join(', ')} (esperado: notebook, computador, PC Gamer, serviços, sobre, contato)`,
+);
+const mobileNav = [...((home?.html ?? '').match(/<details class="nav-mobile"[\s\S]*?<\/details>/)?.[0] ?? '').matchAll(/<a href="([^"]+)"/g)].map((m) => m[1]);
+check(mobileNav.join(',') === desktopNav.join(','), 'Menu do celular em ordem diferente do menu do computador');
+
+// Promessa de processo não confirmada: nada sobre "antes de qualquer troca de peça" em nenhuma página, nos dados estruturados nem em llms*.txt.
+for (const [name, text] of [
+  ...commercial.map((page) => [page.route, decode(`${stripScripts(page.html)} ${jsonLd(page.html).map((data) => JSON.stringify(data)).join(' ')}`)]),
+  ['llms.txt', existsSync(join(DIST, 'llms.txt')) ? readFileSync(join(DIST, 'llms.txt'), 'utf8') : ''],
+  ['llms-full.txt', existsSync(join(DIST, 'llms-full.txt')) ? readFileSync(join(DIST, 'llms-full.txt'), 'utf8') : ''],
+]) {
+  check(!/antes de qualquer troca|antes de trocar (qualquer )?pe[çc]a|sem trocar pe[çc]as? antes/i.test(text), `${name}: promessa de "antes de qualquer troca de peça" (não consta no catálogo nem no brief)`);
+}
+
+// Sanfonas e faixas que rolam: tudo continua no HTML, e toda faixa que rola leva tabindex e nome (alcançável pelo teclado).
+const servicosHtml = pages.find((page) => page.route === '/servicos/')?.html ?? '';
+check((servicosHtml.match(/<details class="acc" data-acc>/g) ?? []).length === categories.filter((category) => category.priority !== 'digital').length, '/servicos/: cada categoria (exceto o bloco digital) deve ter uma sanfona com a lista completa');
+check(!/<details class="acc" data-acc open/.test(servicosHtml), '/servicos/: sanfona já aberta no HTML (o celular deve começar fechado)');
+for (const page of commercial) {
+  for (const tag of tags(page.html, 'div').concat(tags(page.html, 'ul')).filter((t) => /class="[^"]*scroll-m/.test(t))) {
+    check(/tabindex="0"/.test(tag) && /aria-label="/.test(tag), `${page.route}: faixa que rola sem tabindex e nome (teclado): ${tag.slice(0, 90)}`);
+  }
+}
 
 /* 7. Arquivos de rastreamento */
 const robotsTxt = readFileSync(join(DIST, 'robots.txt'), 'utf8');

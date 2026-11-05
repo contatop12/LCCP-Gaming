@@ -13,8 +13,18 @@ const CACHE_DIR = 'node_modules/.cache/lcpc-images';
 const OUT_DIR = 'dist/assets/img';
 
 /** Qualidade de cada formato. */
-export const QUALITY = { avif: 62, webp: 74, jpg: 78, png: 90 } as const;
+/** AVIF em 50 com esforço 6: 35% menor que em 62 e sem diferença visível numa amostra a 100% (as fotos são de celular, com pouco detalhe fino). */
+export const QUALITY = { avif: 50, webp: 74, jpg: 78, png: 90 } as const;
 export type Format = keyof typeof QUALITY;
+
+/**
+ * Recorte feito no build para a proporção real do bloco: as fotos são em retrato e os blocos costumam ser paisagem, então
+ * sem recorte o navegador baixa pixels que o `object-fit: cover` joga fora. `pos` é o enquadramento em %, como o object-position.
+ */
+export interface Crop {
+  ratio: number;
+  pos: [number, number];
+}
 
 export interface Source {
   file: string;
@@ -55,8 +65,8 @@ export const fitWidths = (image: Source, list: number[]): number[] => {
 };
 
 /** Gera (ou lê do cache) uma variante e a publica em dist/assets/img. Devolve a URL pública. */
-export function variant(image: Source, width: number, format: Format): Promise<string> {
-  const key = `${image.digest}|${width}|${format}|${QUALITY[format]}|${sharp.versions.sharp}`;
+export function variant(image: Source, width: number, format: Format, crop?: Crop): Promise<string> {
+  const key = `${image.digest}|${width}|${format}|${QUALITY[format]}|${crop ? `${crop.ratio}@${crop.pos.join(',')}` : ''}|${sharp.versions.sharp}`;
   let found = variants.get(key);
   if (!found) {
     found = (async () => {
@@ -64,18 +74,39 @@ export function variant(image: Source, width: number, format: Format): Promise<s
       mkdirSync(OUT_DIR, { recursive: true });
       const cached = join(CACHE_DIR, `${sha1(key)}.${format}`);
       if (!existsSync(cached)) {
-        const pipeline = sharp(readFileSync(join(MEDIA_DIR, image.file))).rotate().resize({ width, withoutEnlargement: true });
-        const encoded = await pipeline.toFormat(format === 'jpg' ? 'jpeg' : format, { quality: QUALITY[format] }).toBuffer();
+        let pipeline = sharp(readFileSync(join(MEDIA_DIR, image.file))).rotate();
+        const region = crop ? cropRegion(image, crop) : null;
+        if (region) pipeline = pipeline.extract(region);
+        pipeline = pipeline.resize({ width, withoutEnlargement: true });
+        const encoded = await pipeline.toFormat(format === 'jpg' ? 'jpeg' : format, format === 'avif' ? { quality: QUALITY[format], effort: 6 } : { quality: QUALITY[format] }).toBuffer();
         writeFileSync(cached, encoded);
       }
       const data = readFileSync(cached);
-      const fileName = `${image.name}-${width}.${sha1(data).slice(0, 8)}.${format}`;
+      const fileName = `${image.name}${crop ? `-r${Math.round(crop.ratio * 100)}` : ''}-${width}.${sha1(data).slice(0, 8)}.${format}`;
       writeFileSync(join(OUT_DIR, fileName), data);
       return `/assets/img/${fileName}`;
     })();
     variants.set(key, found);
   }
   return found;
+}
+
+/** Região (em pixels da foto original) que cobre a proporção pedida em torno do enquadramento; null se a foto já tem essa proporção. */
+export function cropRegion(image: Source, crop: Crop): { left: number; top: number; width: number; height: number } | null {
+  const natural = image.width / image.height;
+  if (Math.abs(natural - crop.ratio) / crop.ratio < 0.04) return null;
+  if (crop.ratio > natural) {
+    const height = Math.round(image.width / crop.ratio);
+    return { left: 0, top: Math.round(((image.height - height) * crop.pos[1]) / 100), width: image.width, height };
+  }
+  const width = Math.round(image.height * crop.ratio);
+  return { left: Math.round(((image.width - width) * crop.pos[0]) / 100), top: 0, width, height: image.height };
+}
+
+/** Dimensões da foto depois do recorte. */
+export function croppedSize(image: Source, crop?: Crop): { width: number; height: number } {
+  const region = crop ? cropRegion(image, crop) : null;
+  return region ? { width: region.width, height: region.height } : { width: image.width, height: image.height };
 }
 
 export interface SrcSet {
@@ -85,9 +116,9 @@ export interface SrcSet {
   largest: string;
 }
 
-export async function srcset(image: Source, widths: number[], format: Format): Promise<SrcSet> {
-  const usable = fitWidths(image, widths);
-  const urls = await Promise.all(usable.map((width) => variant(image, width, format)));
+export async function srcset(image: Source, widths: number[], format: Format, crop?: Crop): Promise<SrcSet> {
+  const usable = fitWidths({ ...image, width: croppedSize(image, crop).width }, widths);
+  const urls = await Promise.all(usable.map((width) => variant(image, width, format, crop)));
   return {
     attribute: urls.map((url, index) => `${url} ${usable[index]}w`).join(', '),
     largest: urls[urls.length - 1]!,

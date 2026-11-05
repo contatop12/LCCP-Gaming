@@ -16,11 +16,11 @@ export interface NavItem {
   label: string;
 }
 
-/** PC Gamer abre o menu, como pede o brief. */
+/** Notebook abre o menu (decisão do cliente, que substitui o brief original, em que PC Gamer vinha primeiro). */
 export const mainNav: NavItem[] = [
-  { href: '/pc-gamer/', label: 'PC Gamer' },
   { href: '/conserto-de-notebook/', label: 'Conserto de notebook' },
   { href: '/conserto-de-computador/', label: 'Conserto de computador' },
+  { href: '/pc-gamer/', label: 'PC Gamer' },
   { href: '/servicos/', label: 'Serviços' },
   { href: '/sobre/', label: 'Sobre' },
   { href: '/contato/', label: 'Contato' },

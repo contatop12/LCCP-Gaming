@@ -31,9 +31,9 @@
         </div>
       </div>
       <div class="phero__media">
-        <lcpc-tile name="gabineteInterior" sizes="(min-width: 900px) 46vw, 100vw" widths="480,668" class="tile--wide" pos="50% 40%" morph="pcgamer" priority />
-        <lcpc-tile name="videoVerde" sizes="(min-width: 900px) 23vw, 50vw" widths="232,464" pos="50% 40%" />
-        <lcpc-tile name="videoRosa" sizes="(min-width: 900px) 23vw, 50vw" widths="232,464" pos="50% 50%" />
+        <lcpc-tile name="gabineteInterior" ratio="2.4" ratio-m="1.7" sizes="(min-width: 900px) 46vw, calc(100vw - 2.5rem)" class="tile--wide" pos="50% 40%" morph="pcgamer" priority />
+        <lcpc-tile name="videoVerde" ratio="1.8" ratio-m="1" sizes="(min-width: 900px) 22vw, calc((100vw - 3rem) / 2)" widths="232,464" pos="50% 40%" />
+        <lcpc-tile name="videoRosa" ratio="1.8" ratio-m="1" sizes="(min-width: 900px) 22vw, calc((100vw - 3rem) / 2)" widths="232,464" pos="50% 50%" />
       </div>
     </div>
   </section>
@@ -43,7 +43,7 @@
       <div class="answer">
         <h2 id="resposta">Como montar, melhorar ou consertar um PC gamer?</h2>
         <p>
-          Na LCPC Gaming você escolhe entre três caminhos para o seu desktop: montar um PC novo, melhorar o que você já tem ou diagnosticar um problema. A avaliação parte dos seus jogos, da resolução do monitor, do orçamento e das peças que você já tem, sempre conferindo a compatibilidade entre processador, placa-mãe, memória, placa de vídeo, fonte e gabinete. Não há promessa de ganho de FPS antes de avaliar a máquina: o resultado depende do jogo e da peça que limita o PC.
+          Na LCPC Gaming você escolhe entre três caminhos para o seu desktop: montar um PC novo, melhorar o que você já tem ou diagnosticar um problema. A avaliação parte dos seus jogos, da resolução do monitor, do orçamento e das peças que você já tem, com conferência da compatibilidade entre processador, placa-mãe, memória, placa de vídeo, fonte e gabinete. Não há promessa de ganho de FPS antes de avaliar a máquina: o resultado depende do jogo e da peça que limita o PC.
         </p>
       </div>
       <nav class="jump" aria-label="Escolha seu caminho">
@@ -62,7 +62,7 @@
         <h2 id="montar-titulo">Montar um PC</h2>
         <p>Cinco informações orientam a escolha das peças. Quanto mais delas você enviar, mais útil é a primeira resposta.</p>
       </div>
-      <ul class="strip">
+      <ul class="strip scroll-m" tabindex="0" aria-label="Cinco informações para escolher as peças (role para o lado)">
         <li>
           <h3>Jogos</h3>
           <p>Um competitivo leve e um lançamento de mundo aberto pedem coisas diferentes. A lista do que você joga é o ponto de partida.</p>
@@ -134,11 +134,11 @@
     </div>
   </section>
 
-  <section id="diagnostico" class="band band--deep" aria-labelledby="diagnostico-titulo">
+  <section id="diagnostico" class="band band--deep band--split" aria-labelledby="diagnostico-titulo">
     <div class="wrap">
       <div class="head">
         <h2 id="diagnostico-titulo">Diagnosticar um problema</h2>
-        <p>Cada sintoma aponta para um conjunto de peças. Os testes confirmam a causa antes do orçamento de reparo.</p>
+        <p>Cada sintoma aponta para um conjunto de peças. Os testes apontam a causa e o resultado é um laudo técnico com o orçamento de reparo.</p>
       </div>
       <lcpc-symptoms set="gamer" location="jornada_diagnostico" />
       <div class="actions">
@@ -154,22 +154,17 @@
       <lcpc-video />
       <div class="video-section__text">
         <h2 id="video-titulo">Veja um gabinete de perto</h2>
-        <p>O vídeo só carrega quando você clica em assistir. Ele mostra o gabinete e a iluminação em movimento, com som. Depois de assistir, escolha o caminho que combina com o seu caso:</p>
-        <nav class="jump jump--stack" aria-label="Caminhos do PC gamer, depois do vídeo">
-          <a href="#montar"><strong>Montar um PC</strong><span>Jogos, resolução, orçamento e peças que você já tem</span></a>
-          <a href="#upgrade"><strong>Melhorar o PC atual</strong><span>Processador, placa de vídeo, memória, SSD, fonte ou refrigeração</span></a>
-          <a href="#diagnostico"><strong>Diagnosticar um problema</strong><span>Aquecimento, ruído, travamentos, desligamentos ou falta de vídeo</span></a>
-        </nav>
-        <div class="actions actions--stack">
-          <lcpc-whatsapp context="montagem" location="video">Quero montar um PC</lcpc-whatsapp>
-          <lcpc-whatsapp context="upgrade" location="video" variant="text">Quero fazer um upgrade</lcpc-whatsapp>
-          <lcpc-whatsapp context="manutencaoGamer" location="video" variant="text">Meu PC está com problema</lcpc-whatsapp>
+        <p>O vídeo só carrega quando você clica em assistir. Ele mostra o gabinete e a iluminação em movimento, com som. Depois de assistir, fale sobre o caminho que combina com o seu caso: montagem, upgrade ou um problema no PC.</p>
+        <div class="actions actions--stack actions--cards">
+          <lcpc-whatsapp context="montagem" location="video" class="btn--card"><strong>Quero montar um PC</strong><small>Jogos, resolução, orçamento e peças que você já tem</small></lcpc-whatsapp>
+          <lcpc-whatsapp context="upgrade" location="video" variant="ghost" class="btn--card"><strong>Quero fazer um upgrade</strong><small>Processador, placa de vídeo, memória, SSD, fonte ou refrigeração</small></lcpc-whatsapp>
+          <lcpc-whatsapp context="manutencaoGamer" location="video" variant="ghost" class="btn--card"><strong>Meu PC está com problema</strong><small>Aquecimento, ruído, travamentos, desligamentos ou falta de vídeo</small></lcpc-whatsapp>
         </div>
       </div>
     </div>
   </section>
 
-  <lcpc-faq set="pcGamer" title="Dúvidas sobre PC gamer" lead="Peças próprias, upgrade, FPS e desligamentos durante o jogo." />
+  <lcpc-faq set="pcGamer" photo="videoRosa" photo-pos="50% 50%" photo-ratio="1.6" title="Dúvidas sobre PC gamer" lead="Peças próprias, upgrade, FPS e desligamentos durante o jogo." />
 
   <section class="band band--raised" aria-label="Outras páginas relacionadas">
     <div class="wrap related">

@@ -36,9 +36,9 @@
         </nav>
       </div>
       <div class="phero__media">
-        <lcpc-tile name="bancada" sizes="(min-width: 900px) 46vw, 100vw" class="tile--wide" pos="50% 40%" priority />
-        <lcpc-tile name="gabineteInterior" sizes="(min-width: 900px) 23vw, 50vw" widths="480,668" pos="50% 40%" />
-        <lcpc-tile name="detalheNotebook" sizes="(min-width: 900px) 23vw, 50vw" widths="480,800" pos="50% 40%" />
+        <lcpc-tile name="bancada" ratio="1.1" ratio-m="1.8" sizes="(min-width: 900px) 46vw, calc(100vw - 2.5rem)" class="tile--wide" pos="50% 40%" priority />
+        <lcpc-tile name="gabineteInterior" ratio="0.85" ratio-m="1" sizes="(min-width: 900px) 22vw, calc((100vw - 3rem) / 2)" pos="50% 40%" />
+        <lcpc-tile name="detalheNotebook" ratio="0.85" ratio-m="1" sizes="(min-width: 900px) 22vw, calc((100vw - 3rem) / 2)" pos="50% 40%" />
       </div>
     </div>
   </section>
@@ -64,14 +64,14 @@
         <lcpc-service category="notebooks" class="c7" />
         <lcpc-service category="diagnostico" class="c5" />
         <lcpc-service category="desktops" class="c4" />
-        <lcpc-tile name="placaMae" sizes="(min-width: 760px) 23vw, 100vw" class="c3" pos="45% 45%" />
+        <lcpc-tile name="placaMae" ratio="0.6" ratio-m="0.6" sizes="22vw" class="c3 hide-m" pos="45% 45%" />
         <lcpc-service category="limpeza" class="c5" />
         <lcpc-service category="montagem-upgrade" class="c5" />
-        <lcpc-tile name="gabineteInterior" sizes="(min-width: 760px) 23vw, 100vw" class="c3" pos="50% 40%" />
+        <lcpc-tile name="gabineteInterior" sizes="22vw" ratio="0.5" ratio-m="0.5" class="c3 hide-m" pos="50% 40%" />
         <lcpc-service category="formatacao" class="c4" />
         <lcpc-service category="virus" class="c4" />
         <lcpc-service category="atendimento" class="c4" />
-        <lcpc-tile name="bancadaPositivo" sizes="(min-width: 760px) 31vw, 100vw" class="c4" pos="50% 55%" />
+        <lcpc-tile name="bancadaPositivo" ratio="1.2" ratio-m="1.2" sizes="30vw" class="c4 hide-m" pos="50% 55%" />
       </div>
     </div>
   </section>
@@ -88,7 +88,7 @@
         <lcpc-service category="placas" class="c5" />
         <lcpc-service category="dados" class="c7" />
         <lcpc-service category="perifericos" class="c4" />
-        <lcpc-tile name="bancadaNotebookAberto" sizes="(min-width: 760px) 31vw, 100vw" class="c4" pos="50% 60%" />
+        <lcpc-tile name="bancadaNotebookAberto" ratio="2.3" ratio-m="1.2" sizes="30vw" class="c4 hide-m" pos="50% 60%" />
         <lcpc-service category="avaliacao" class="c4" />
       </div>
     </div>
@@ -96,7 +96,7 @@
 
   <lcpc-digital-block category="digital" />
 
-  <lcpc-faq set="servicos" title="Dúvidas sobre os serviços" lead="Como escolher o serviço, o que muda entre principais e complementares e como orçar mais de um item." photo="bancadaLuz" photo-pos="50% 40%" />
+  <lcpc-faq set="servicos" title="Dúvidas sobre os serviços" lead="Como escolher o serviço, o que muda entre principais e complementares e como orçar mais de um item." photo="bancadaLuz" photo-pos="50% 40%" photo-ratio="1.6" />
 
   <lcpc-cta-band
     title="Não sabe qual serviço escolher?"

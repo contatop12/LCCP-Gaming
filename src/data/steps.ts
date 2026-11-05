@@ -1,7 +1,7 @@
 /**
  * Como funciona o atendimento. A lista alimenta a seção visível da home (<lcpc-steps>) e o HowTo do JSON-LD,
  * então os dois sempre dizem a mesma coisa. Só descreve etapas já presentes no catálogo (diagnóstico com testes
- * e laudo técnico com orçamento de reparo) e no brief (contato pelo WhatsApp). Não promete prazo, preço nem garantia.
+ * e laudo técnico com orçamento de reparo; sem prometer ordem de troca de peça) e no brief (contato pelo WhatsApp). Não promete prazo, preço nem garantia.
  */
 export interface Step {
   name: string;
@@ -20,7 +20,7 @@ export const steps = {
     },
     {
       name: 'O laudo traz o orçamento',
-      text: 'O laudo técnico chega com o orçamento de reparo, antes de qualquer troca de peça.',
+      text: 'O resultado é um laudo técnico com o orçamento de reparo.',
     },
   ],
 } satisfies Record<string, Step[]>;
