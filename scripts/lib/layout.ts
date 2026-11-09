@@ -155,7 +155,7 @@ async function footer(): Promise<string> {
     `<a href="mailto:${business.email}">${esc(business.email)}</a><br><a href="${esc(directionsUrl)}" target="_blank" rel="noopener">Como chegar</a>${profile}</address>` +
     `<nav aria-label="Rodapé"><ul class="site-footer__nav">${links}</ul></nav>` +
     `<nav aria-label="Serviços"><ul class="site-footer__nav">${services}</ul></nav></div>` +
-    `<div class="wrap site-footer__legal"><p>Horários e condições de retirada e entrega: consulte pelo WhatsApp.</p><p>© ${new Date().getFullYear()} ${esc(business.name)}. São Paulo - SP.</p></div></footer>`
+    `<div class="wrap site-footer__legal"><p>Horários e condições de retirada e entrega: consulte pelo WhatsApp.</p><p>© ${new Date().getFullYear()} ${esc(business.name)}. São Paulo - SP.</p><p class="site-footer__credit">Desenvolvido por <a href="https://p12digital.com.br/" target="_blank" rel="noopener">P12 Digital</a></p></div></footer>`
   );
 }
 
