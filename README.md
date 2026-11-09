@@ -181,7 +181,7 @@ Copie `.env.example` para `.env` (uso local) ou defina as variáveis no ambiente
 | ----- | ----- |
 | `PUBLIC_SITE_URL` | Domínio de produção, com `https` e sem barra final. Gera canônicas, sitemap e URLs absolutas |
 | `PUBLIC_INDEXABLE` | Use `true` só no build de produção |
-| `PUBLIC_GTM_ID` | Ativa o Google Tag Manager |
+| `PUBLIC_GTM_ID` | Contêiner do Google Tag Manager. O padrão no código é `GTM-527W9345`, instalado a pedido do cliente; um valor vazio desliga o GTM no build |
 | `PUBLIC_GA4_ID` | Ativa o GA4 direto. É ignorado se houver GTM |
 | `PUBLIC_GOOGLE_BUSINESS_URL` | Mostra o link do Perfil da Empresa no rodapé e em Contato, e o inclui no `sameAs` |
 
@@ -213,6 +213,16 @@ O clique não espera o analytics para abrir o WhatsApp, e o evento não leva dad
 | Venda | O orçamento foi aprovado e o serviço, contratado | Controle comercial |
 
 A mensagem pré-preenchida ajuda a identificar conversas vindas do site, mas a pessoa pode editá-la antes de enviar.
+
+### Google Tag Manager instalado (`GTM-527W9345`)
+
+O site carrega o contêiner `GTM-527W9345` em todas as páginas, inclusive no ambiente de testes. Ele carrega só quando a página é aberta de fato: páginas pré-carregadas pela navegação instantânea esperam a abertura para não contar visita.
+
+- **Instalação:** o snippet colado pelo cliente foi adaptado ao formato padrão do GTM. Ele definia uma função `gtag`, e com ela o clique no WhatsApp seria enviado no formato do gtag, que o GTM pode não tratar como evento personalizado.
+- **Evento:** cada clique em WhatsApp chega à camada de dados como `{ event: 'whatsapp_click', page_path, service_category, cta_location }`. No GTM, crie variáveis da camada de dados para os três parâmetros e um acionador de evento personalizado `whatsapp_click`.
+- **Tráfego de testes:** enquanto o site estiver em `*.workers.dev`, as visitas de teste também chegam ao contêiner. Filtre pelo hostname no GTM ou no GA4 até o domínio definitivo entrar no ar.
+- **LGPD:** o site ainda não tem política de privacidade nem aviso de cookies. Isso precisa ser resolvido antes de usar o GTM em campanhas, ou configure o Consent Mode no próprio GTM.
+- **Testes:** `npm run test:e2e` responde vazio ao GTM e aos coletores do Google, para não gerar visitas falsas.
 
 ### Usar `whatsapp_click` como conversão no Google Ads (nada disso foi configurado)
 

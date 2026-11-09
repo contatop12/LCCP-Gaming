@@ -18,6 +18,15 @@ const ok = (name, pass, detail = '') => {
 };
 
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
+// O GTM real nunca carrega nos testes: o contêiner seria executado e mandaria visitas falsas ao Analytics.
+// gtm.js e os coletores do Google respondem vazio, sem erro de rede, em todo contexto criado aqui.
+const GOOGLE_TAGS = /googletagmanager\.com|google-analytics\.com|analytics\.google\.com|doubleclick\.net/;
+const newContext = browser.newContext.bind(browser);
+browser.newContext = async (options) => {
+  const ctx = await newContext(options);
+  await ctx.route(GOOGLE_TAGS, (route) => route.fulfill({ status: 200, contentType: 'application/javascript', body: '' }));
+  return ctx;
+};
 const mobile = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true };
 const desktop = { viewport: { width: 1440, height: 900 } };
 
